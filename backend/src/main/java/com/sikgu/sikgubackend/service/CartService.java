@@ -1,9 +1,14 @@
 package com.sikgu.sikgubackend.service;
 
 import com.sikgu.sikgubackend.dto.CartDto;
+import com.sikgu.sikgubackend.dto.CartItemAddRequest;
 import com.sikgu.sikgubackend.dto.CartItemDto;
 import com.sikgu.sikgubackend.entity.Cart;
+import com.sikgu.sikgubackend.entity.CartItem;
+import com.sikgu.sikgubackend.entity.Plant;
+import com.sikgu.sikgubackend.repository.CartItemRepository;
 import com.sikgu.sikgubackend.repository.CartRepository;
+import com.sikgu.sikgubackend.repository.PlantRepository;
 import com.sikgu.sikgubackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +27,8 @@ public class CartService {
 
     private final CartRepository cartRepository;
     private final UserRepository userRepository;
+    private final PlantRepository plantRepository;
+    private final CartItemRepository cartItemRepository;
 
     public CartDto getShoppingCart(String email) {
 
@@ -62,5 +69,52 @@ public class CartService {
                 .sum();
 
         return new CartDto(email, itemDtos, totalAmount);
+    }
+
+    /**
+     * 장바구니에 식물 항목을 추가합니다.
+     * @param email 현재 사용자 이메일
+     * @param request 추가할 식물 ID와 수량
+     * @return 업데이트된 장바구니 정보 (CartDto)
+     */
+    @Transactional // 쓰기 작업이므로 @Transactional 설정
+    public CartDto addItemToCart(String email, CartItemAddRequest request) {
+
+        // 1. 사용자 및 장바구니 조회 (없으면 생성)
+        Cart cart = cartRepository.findByUserEmail(email)
+                .orElseGet(() -> {
+                    return userRepository.findByEmail(email)
+                            .map(user -> cartRepository.save(Cart.builder().user(user).build()))
+                            .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
+                });
+
+        // 2. Plant 정보 조회
+        Plant plant = plantRepository.findById(request.getPlantId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 식물 ID입니다: " + request.getPlantId()));
+
+        // 3. 기존 항목 확인 (같은 식물이 이미 담겨 있다면 수량만 증가)
+        Optional<CartItem> existingItem = cart.getItems().stream()
+                .filter(item -> item.getPlant().getId().equals(request.getPlantId()))
+                .findFirst();
+
+        CartItem cartItem;
+        if (existingItem.isPresent()) {
+            // 4. 기존 항목이 있으면 수량만 업데이트
+            cartItem = existingItem.get();
+            cartItem.setQuantity(cartItem.getQuantity() + request.getQuantity());
+        } else {
+            // 5. 새 항목이면 생성 및 장바구니에 추가
+            cartItem = new CartItem();
+            cartItem.setCart(cart);
+            cartItem.setPlant(plant);
+            cartItem.setQuantity(request.getQuantity());
+            cart.getItems().add(cartItem); // Cart 엔티티의 컬렉션에도 추가
+        }
+
+        // 6. DB 저장 (Cart의 Cascade 설정 덕분에 CartItem도 함께 저장/업데이트됨)
+        cartItemRepository.save(cartItem);
+
+        // 7. 업데이트된 장바구니 정보 반환
+        return getShoppingCart(email);
     }
 }
