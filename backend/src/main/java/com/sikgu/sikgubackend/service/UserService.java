@@ -50,4 +50,6 @@ public class UserService {
         // User 엔티티를 UserDto로 변환하여 반환
         return new UserDto(user.getNickName(), user.getEmail());
     }
+
+
 }

@@ -20,6 +20,9 @@ public class Plant extends BaseEntity {
 
     private String name;
 
+    //필요 코인
+    private Long price;
+
     @Enumerated(EnumType.ORDINAL)
     private PlantCondition light;
 
