@@ -4,6 +4,9 @@ import { apiRequest } from "@/lib/queryClient";
 interface User {
   id: string;
   username: string;
+  coins: number;
+  address: string | null;
+  phone: string | null;
 }
 
 export function useAuth() {

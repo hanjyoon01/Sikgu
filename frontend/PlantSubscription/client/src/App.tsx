@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { CartProvider } from "@/contexts/CartContext";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Subscription from "@/pages/Subscription";
@@ -13,6 +14,8 @@ import HowItWorks from "@/pages/HowItWorks";
 import Payment from "@/pages/Payment";
 import PlantRecommendation from "@/pages/PlantRecommendation";
 import PlantTips from "@/pages/PlantTips";
+import PlantDetail from "@/pages/PlantDetail";
+import Cart from "@/pages/Cart";
 
 function Router() {
   return (
@@ -22,6 +25,8 @@ function Router() {
       <Route path="/how-it-works" component={HowItWorks} />
       <Route path="/plant-match" component={PlantRecommendation} />
       <Route path="/plant-tips" component={PlantTips} />
+      <Route path="/plant/:id" component={PlantDetail} />
+      <Route path="/cart" component={Cart} />
       <Route path="/payment" component={Payment} />
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
@@ -34,10 +39,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <CartProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </CartProvider>
     </QueryClientProvider>
   );
 }
