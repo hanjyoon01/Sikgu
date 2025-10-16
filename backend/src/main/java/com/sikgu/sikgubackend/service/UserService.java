@@ -47,8 +47,13 @@ public class UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
 
-        // User 엔티티를 UserDto로 변환하여 반환
-        return new UserDto(user.getNickName(), user.getEmail());
+        // User 엔티티를 확장된 UserDto로 변환하여 반환
+        return new UserDto(
+                user.getId(),
+                user.getEmail(),
+                user.getNickName(),
+                user.getAddress()
+        );
     }
 
 
