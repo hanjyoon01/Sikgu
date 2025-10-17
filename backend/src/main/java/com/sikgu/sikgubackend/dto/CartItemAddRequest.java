@@ -9,5 +9,4 @@ import lombok.Setter;
 @NoArgsConstructor
 public class CartItemAddRequest {
     private Long plantId;
-    private int quantity;
 }
