@@ -1,14 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Menu, User, LogOut, Leaf } from "lucide-react";
+import { ShoppingCart, Menu, User, LogOut } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useCart } from "@/contexts/CartContext";
 
 export default function Header() {
   const { user, isAuthenticated, logout, isLogoutLoading } = useAuth();
   const { toast } = useToast();
-  const { itemCount } = useCart();
 
   const handleLogout = async () => {
     try {
@@ -72,20 +70,11 @@ export default function Header() {
               </Link>
             )}
             
-            {isAuthenticated && (
-              <div className="flex items-center gap-1 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full" data-testid="user-coins">
-                <Leaf className="h-4 w-4 text-green-500" />
-                <span className="text-sm font-semibold text-green-700" data-testid="coins-count">{user?.coins || 0}</span>
-              </div>
-            )}
-            
-            <Link href="/cart" className="relative p-2 text-gray-700 hover:text-forest transition-colors duration-200" data-testid="link-cart">
+            <Link href="/cart" className="relative p-2 text-gray-700 hover:text-forest transition-colors duration-200" data-testid="button-cart">
               <ShoppingCart className="h-6 w-6" />
-              {itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium" data-testid="cart-badge-count">
-                  {itemCount}
-                </span>
-              )}
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium" data-testid="cart-count">
+                2
+              </span>
             </Link>
           </nav>
           

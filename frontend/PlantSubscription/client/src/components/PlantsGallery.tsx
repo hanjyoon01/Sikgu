@@ -13,7 +13,7 @@ const plants = [
     lightCondition: "반음지",
     difficulty: "쉬움",
     humidity: "건조",
-    image: "/images/tillandsia.jpg",
+    image: "",
     alt: "틸란드시아"
   },
   {
@@ -24,7 +24,7 @@ const plants = [
     lightCondition: "햇빛 직사광",
     difficulty: "쉬움",
     humidity: "건조",
-    image: "/images/mini-cactus.jpg",
+    image: "",
     alt: "미니 선인장"
   },
   {
@@ -35,7 +35,7 @@ const plants = [
     lightCondition: "간접광",
     difficulty: "어려움",
     humidity: "습함",
-    image: "/images/calathea-orbifolia.jpg",
+    image: "",
     alt: "칼라데아 오르비폴리아"
   },
   {
@@ -46,7 +46,7 @@ const plants = [
     lightCondition: "반음지/음지",
     difficulty: "쉬움",
     humidity: "보통",
-    image: "/images/scindapsus.jpg",
+    image: "",
     alt: "스킨답서스"
   },
   // 중형 식물
@@ -58,7 +58,7 @@ const plants = [
     lightCondition: "간접광",
     difficulty: "보통",
     humidity: "보통",
-    image: "/images/monstera.jpg",
+    image: "",
     alt: "몬스테라"
   },
   {
@@ -69,7 +69,7 @@ const plants = [
     lightCondition: "햇빛 직사광",
     difficulty: "보통",
     humidity: "보통",
-    image: "/images/ladys-slipper.jpg",
+    image: "",
     alt: "여인초"
   },
   {
@@ -80,7 +80,7 @@ const plants = [
     lightCondition: "반음지/음지",
     difficulty: "쉬움",
     humidity: "습함",
-    image: "/images/spathiphyllum.jpg",
+    image: "",
     alt: "스파티필룸"
   },
   {
@@ -91,7 +91,7 @@ const plants = [
     lightCondition: "반음지",
     difficulty: "보통",
     humidity: "보통",
-    image: "/images/areca-palm.jpg",
+    image: "",
     alt: "아레카야자"
   },
   // 대형 식물
@@ -103,7 +103,7 @@ const plants = [
     lightCondition: "간접광",
     difficulty: "쉬움",
     humidity: "건조",
-    image: "/images/rubber-tree.jpg",
+    image: "",
     alt: "고무나무"
   },
   {
@@ -114,7 +114,7 @@ const plants = [
     lightCondition: "햇빛 직사광",
     difficulty: "보통",
     humidity: "보통",
-    image: "/images/bird-of-paradise.jpg",
+    image: "",
     alt: "극락조"
   },
   {
@@ -125,7 +125,7 @@ const plants = [
     lightCondition: "햇빛 직사광",
     difficulty: "쉬움",
     humidity: "건조",
-    image: "/images/euphorbia-trigona.jpg",
+    image: "",
     alt: "유포르비아 트리코나"
   },
   {
@@ -136,7 +136,7 @@ const plants = [
     lightCondition: "반음지",
     difficulty: "쉬움",
     humidity: "보통",
-    image: "/images/philodendron.jpg",
+    image: "",
     alt: "필로덴드론 콩고"
   }
 ];
