@@ -1,0 +1,69 @@
+package com.sikgu.sikgubackend.entity;
+
+import com.sikgu.sikgubackend.entity.base.BaseEntity;
+import com.sikgu.sikgubackend.entity.enums.Role;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Entity
+@Table(name = "users")
+public class User extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    private String password;
+
+    private String nickName;
+
+    private String address;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subscription_id")
+    private Subscription subscription;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Review> reviews = new ArrayList<>();
+
+//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<Reminder> reminders = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SupportQnA> supportQnAs = new ArrayList<>();
+
+    public static User createUser(String email, String password, String nickName, Role role) {
+        User user = new User();
+        user.email = email;
+        user.password = password;
+        user.nickName = nickName;
+        user.role = role;
+        return user;
+    }
+
+    public void addReview(Review review) {
+        this.reviews.add(review);
+        review.setUser(this);
+    }
+
+//    public void addReminder(Reminder reminder) {
+//        this.reminders.add(reminder);
+//        reminder.setUser(this);
+//    }
+
+    public void addSupportQnA(SupportQnA supportQnA) {
+        this.supportQnAs.add(supportQnA);
+        supportQnA.setUser(this);
+    }
+}
