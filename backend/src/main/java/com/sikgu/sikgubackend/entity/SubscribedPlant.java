@@ -2,13 +2,10 @@ package com.sikgu.sikgubackend.entity;
 
 import com.sikgu.sikgubackend.entity.base.BaseEntity;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "subscribed_plant")
 public class SubscribedPlant extends BaseEntity {
@@ -17,6 +14,7 @@ public class SubscribedPlant extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subscription_id")
     private Subscription subscription;
@@ -30,4 +28,13 @@ public class SubscribedPlant extends BaseEntity {
     private Pot pot;
 
     private Integer quantity;
+
+    public static SubscribedPlant createSubscribedPlant(Subscription subscription, Plant plant, Pot pot, int quantity) {
+        SubscribedPlant subscribedPlant = new SubscribedPlant();
+        subscribedPlant.subscription = subscription;
+        subscribedPlant.plant = plant;
+        subscribedPlant.pot = pot;
+        subscribedPlant.quantity = quantity;
+        return subscribedPlant;
+    }
 }

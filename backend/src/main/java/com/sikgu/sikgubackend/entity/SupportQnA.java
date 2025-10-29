@@ -3,14 +3,14 @@ package com.sikgu.sikgubackend.entity;
 import com.sikgu.sikgubackend.entity.base.BaseEntity;
 import com.sikgu.sikgubackend.entity.enums.Category;
 import jakarta.persistence.*;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+
+import lombok.*;
 
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "support_qna")
 public class SupportQnA extends BaseEntity {
@@ -19,6 +19,7 @@ public class SupportQnA extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
@@ -33,4 +34,14 @@ public class SupportQnA extends BaseEntity {
     private String answer;
 
     private LocalDateTime createdAt;
+
+    public static SupportQnA createSupportQnA(User user, Category category, String question, String answer) {
+        SupportQnA supportQnA = new SupportQnA();
+        supportQnA.user = user;
+        supportQnA.category = category;
+        supportQnA.question = question;
+        supportQnA.answer = answer;
+        supportQnA.createdAt = LocalDateTime.now();
+        return supportQnA;
+    }
 }

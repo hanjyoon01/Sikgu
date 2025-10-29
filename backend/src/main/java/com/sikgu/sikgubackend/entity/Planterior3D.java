@@ -3,13 +3,11 @@ package com.sikgu.sikgubackend.entity;
 import com.sikgu.sikgubackend.entity.base.BaseEntity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+
+import lombok.*;
 
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "planterior3d")
 public class Planterior3D extends BaseEntity {
@@ -22,4 +20,11 @@ public class Planterior3D extends BaseEntity {
     private String plantModelingURL;
 
     private LocalDateTime createdAt;
+
+    public static Planterior3D createPlanterior3D(String url, LocalDateTime createdAt) {
+        Planterior3D planterior3D = new Planterior3D();
+        planterior3D.plantModelingURL = url;
+        planterior3D.createdAt = createdAt;
+        return planterior3D;
+    }
 }

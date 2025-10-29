@@ -31,7 +31,7 @@ dependencies {
 	runtimeOnly 'com.h2database:h2'
 
 	// MySQL 데이터베이스 연결 드라이버
-	// runtimeOnly 'com.mysql:mysql-connector-j'
+	runtimeOnly 'com.mysql:mysql-connector-j'
 
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
@@ -49,6 +49,10 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+//	implementation platform('com.amazonaws:aws-java-sdk-bom:1.12.529')
+//	implementation 'com.amazonaws:aws-java-sdk-s3'
+	implementation 'io.awspring.cloud:spring-cloud-starter-aws:2.4.4'
 }
 
 tasks.named('test') {

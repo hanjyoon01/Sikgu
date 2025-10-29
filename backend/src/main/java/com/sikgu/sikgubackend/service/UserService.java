@@ -26,11 +26,11 @@ public class UserService {
             return false;
         }
 
-        User user = new User();
-        user.setEmail(signupRequest.getEmail());
-        user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
-        user.setNickName(signupRequest.getNickName());
-        user.setRole(Role.USER);
+        String email = signupRequest.getEmail();
+        String password = passwordEncoder.encode(signupRequest.getPassword());
+        String nickName = signupRequest.getNickName();
+
+        User user = User.createUser(email, password, nickName, Role.USER);
 
         try {
             userRepository.save(user);

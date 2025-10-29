@@ -2,13 +2,10 @@ package com.sikgu.sikgubackend.entity;
 
 import com.sikgu.sikgubackend.entity.base.BaseEntity;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "plan")
 public class Plan extends BaseEntity {
@@ -19,7 +16,15 @@ public class Plan extends BaseEntity {
 
     private String name;
 
-    private Integer price;
+    private Long price;
 
     private Integer coins;
+
+    public static Plan createPlan(String name, long price, int coins) {
+        Plan plan = new Plan();
+        plan.name = name;
+        plan.price = price;
+        plan.coins = coins;
+        return plan;
+    }
 }

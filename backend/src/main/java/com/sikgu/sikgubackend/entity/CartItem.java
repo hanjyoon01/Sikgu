@@ -7,7 +7,6 @@ import lombok.Setter;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 @Table(name = "cart_item")
 public class CartItem {
@@ -16,13 +15,29 @@ public class CartItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id", nullable = false)
     private Cart cart;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "plant_id", nullable = false)
     private Plant plant;
 
     private int quantity;
+
+    public static CartItem createCartItem() {
+        CartItem cartItem = new CartItem();
+        cartItem.quantity = 1;
+        return cartItem;
+    }
+
+    public void increaseQuantity() {
+        this.quantity += 1;
+    }
+
+    public void decreaseQuantity() {
+        this.quantity -= 1;
+    }
 }

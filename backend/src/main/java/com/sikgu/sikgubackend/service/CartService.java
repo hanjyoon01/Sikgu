@@ -41,7 +41,7 @@ public class CartService {
         } else {
             // 장바구니가 없으면 새로 생성 후 반환 (쓰기 작업은 아니지만 임시 객체 반환)
             cart = userRepository.findByEmail(email)
-                    .map(user -> Cart.builder().user(user).build())
+                    .map(Cart::createCart)
                     .orElseThrow(() -> new UsernameNotFoundException("사용자 정보를 찾을 수 없습니다: " + email));
         }
 
@@ -74,7 +74,7 @@ public class CartService {
         Cart cart = cartRepository.findByUserEmail(email)
                 .orElseGet(() -> {
                     return userRepository.findByEmail(email)
-                            .map(user -> cartRepository.save(Cart.builder().user(user).build()))
+                            .map(user -> cartRepository.save(Cart.createCart(user)))
                             .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
                 });
 
@@ -89,13 +89,12 @@ public class CartService {
         if (existingItem.isPresent()) {
             // 기존 항목이 있으면 수량을 1만 증가
             cartItem = existingItem.get();
-            cartItem.setQuantity(cartItem.getQuantity() + 1);
+            cartItem.increaseQuantity();
         } else {
             // 새 항목이면 수량을 1로 설정
-            cartItem = new CartItem();
+            cartItem = CartItem.createCartItem();
             cartItem.setCart(cart);
             cartItem.setPlant(plant);
-            cartItem.setQuantity(1);
             cart.getItems().add(cartItem);
         }
 
@@ -117,7 +116,7 @@ public class CartService {
 
         if (cartItem.getQuantity() > 1) {
             // 수량이 1보다 크면 1 감소
-            cartItem.setQuantity(cartItem.getQuantity() - 1);
+            cartItem.decreaseQuantity();
             cartItemRepository.save(cartItem);
         } else {
             // 수량이 1이면 항목 전체 제거
