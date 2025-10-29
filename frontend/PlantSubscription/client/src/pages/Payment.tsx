@@ -6,18 +6,25 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreditCard, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 const planDetails = {
-  1: { title: "1코인", price: "4,900원", value: 4900 },
-  2: { title: "2코인", price: "9,900원", value: 9900 },
-  5: { title: "5코인", price: "23,900원", value: 23900 },
-  10: { title: "10코인", price: "44,900원", value: 44900 }
+  1: { title: "1코인", price: "4,900원", value: 4900, coins: 1 },
+  2: { title: "2코인", price: "9,900원", value: 9900, coins: 2 },
+  5: { title: "5코인", price: "23,900원", value: 23900, coins: 5 },
+  10: { title: "10코인", price: "44,900원", value: 44900, coins: 10 }
 };
 
 export default function Payment() {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const [selectedPlan, setSelectedPlan] = useState<keyof typeof planDetails | null>(null);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -30,15 +37,85 @@ export default function Payment() {
     }
   }, [location]);
 
+  const createSubscriptionMutation = useMutation({
+    mutationFn: async (data: { planName: string; coinsReceived: number; amount: number }) => {
+      return await apiRequest('POST', '/api/subscriptions', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/subscriptions'] });
+      toast({
+        title: "결제가 완료되었습니다!",
+        description: "코인이 충전되었습니다.",
+      });
+      navigate('/mypage?tab=subscription');
+    },
+    onError: (error: any) => {
+      toast({
+        title: "결제 실패",
+        description: error.message || "다시 시도해주세요.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handlePaymentClick = () => {
     setShowPaymentForm(true);
   };
 
   const handlePaymentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // 실제 결제 처리는 하지 않고 성공 메시지만 표시
-    alert("결제가 완료되었습니다! (데모용)");
+    
+    if (!selectedPlan) return;
+    
+    const plan = planDetails[selectedPlan];
+    
+    // 구독 만료일 설정 (1달 후)
+    const expiresAt = new Date();
+    expiresAt.setMonth(expiresAt.getMonth() + 1);
+    
+    createSubscriptionMutation.mutate({
+      planName: plan.title + " 플랜",
+      coinsReceived: plan.coins,
+      amount: plan.value,
+      expiresAt: expiresAt.toISOString(),
+    });
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-bg-soft">
+        <Header />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-forest mx-auto mb-4"></div>
+            <p className="text-gray-600">로딩 중...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-bg-soft">
+        <Header />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">로그인이 필요합니다</h1>
+            <p className="text-gray-600 mb-6">결제를 진행하려면 로그인해주세요.</p>
+            <Link href="/login">
+              <Button className="bg-forest text-white hover:bg-forest/90">
+                로그인하기
+              </Button>
+            </Link>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!selectedPlan) {
     return (
@@ -200,8 +277,9 @@ export default function Payment() {
                       type="submit"
                       className="w-full bg-forest text-white hover:bg-forest/90 py-3 text-lg mt-6"
                       data-testid="button-complete-payment"
+                      disabled={createSubscriptionMutation.isPending}
                     >
-                      {plan.price} 결제 완료
+                      {createSubscriptionMutation.isPending ? "처리 중..." : `${plan.price} 결제 완료`}
                     </Button>
                     
                     <Button 
