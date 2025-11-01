@@ -13,7 +13,7 @@ import { apiRequest } from "@/lib/queryClient";
 export default function Cart() {
   const { items, itemCount, removeItem, updateQuantity, clearCart } = useCart();
   const { toast } = useToast();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
@@ -50,7 +50,6 @@ export default function Cart() {
           description: `현재 코인: ${error.currentCoins}, 필요 코인: ${error.requiredCoins}`,
           variant: "destructive",
         });
-        setLocation("/subscription");
       } else {
         toast({
           title: "구매 실패",
@@ -90,6 +89,36 @@ export default function Cart() {
 
     checkoutMutation.mutate();
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-bg-soft flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-forest mx-auto mb-4"></div>
+          <p className="text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-bg-soft flex items-center justify-center">
+        <Card className="w-full max-w-md mx-auto">
+          <CardContent className="text-center py-8">
+            <ShoppingBag className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">로그인이 필요합니다</h2>
+            <p className="text-gray-600 mb-6">장바구니를 이용하려면 로그인해주세요.</p>
+            <Link href="/login">
+              <Button className="bg-forest text-white hover:bg-forest/90">
+                로그인하기
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-bg-soft">

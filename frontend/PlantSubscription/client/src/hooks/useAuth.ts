@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, getQueryFn } from "@/lib/queryClient";
 
 interface User {
   id: string;
@@ -14,6 +14,7 @@ export function useAuth() {
 
   const { data: user, isLoading } = useQuery<User>({
     queryKey: ["/api/auth/me"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
   });
 
@@ -56,8 +57,9 @@ export function useAuth() {
       return response.json();
     },
     onSuccess: () => {
+      // Clear all cached data to prevent data leakage between users
+      queryClient.clear();
       queryClient.setQueryData(["/api/auth/me"], null);
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
     },
   });
 

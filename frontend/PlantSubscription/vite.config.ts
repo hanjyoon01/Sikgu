@@ -29,6 +29,12 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
+    host: "0.0.0.0",
+    port: 5000,
+    strictPort: true,
+    hmr: process.env.REPL_ID !== undefined ? {
+      clientPort: 443,
+    } : true,
     fs: {
       strict: true,
       deny: ["**/.*"],
