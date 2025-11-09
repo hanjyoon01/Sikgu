@@ -1,10 +1,12 @@
 package com.sikgu.sikgubackend.service;
 
+import com.sikgu.sikgubackend.dto.InfoRequest;
 import com.sikgu.sikgubackend.dto.SignupRequest;
 import com.sikgu.sikgubackend.dto.UserDto;
 import com.sikgu.sikgubackend.entity.User;
 import com.sikgu.sikgubackend.entity.enums.Role;
 import com.sikgu.sikgubackend.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,9 +30,8 @@ public class UserService {
 
         String email = signupRequest.getEmail();
         String password = passwordEncoder.encode(signupRequest.getPassword());
-        String nickName = signupRequest.getNickName();
 
-        User user = User.createUser(email, password, nickName, Role.USER);
+        User user = User.createUser(email, password, Role.USER);
 
         try {
             userRepository.save(user);
@@ -51,10 +52,24 @@ public class UserService {
         return new UserDto(
                 user.getId(),
                 user.getEmail(),
-                user.getNickName(),
-                user.getAddress()
+                user.getAddress(),
+                user.getPhoneNumber()
         );
     }
 
+    // 주소 및 전화번호 변경
+    @Transactional
+    public UserDto updateInfo(String email, InfoRequest request) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
 
+        user.updateInfo(
+                request.getAddress(),
+                request.getPhoneNumber()
+        );
+
+        userRepository.save(user);
+
+        return getUserProfile(email);
+    }
 }

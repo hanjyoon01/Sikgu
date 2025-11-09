@@ -23,9 +23,9 @@ public class User extends BaseEntity {
 
     private String password;
 
-    private String nickName;
-
     private String address;
+
+    private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -37,31 +37,28 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> reviews = new ArrayList<>();
 
-//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<Reminder> reminders = new ArrayList<>();
-
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SupportQnA> supportQnAs = new ArrayList<>();
 
-    public static User createUser(String email, String password, String nickName, Role role) {
+    public static User createUser(String email, String password, Role role) {
         User user = new User();
         user.email = email;
         user.password = password;
-        user.nickName = nickName;
         user.role = role;
         return user;
+    }
+
+    public void updateInfo(String newAddress, String newPhoneNumber) {
+        // 유효성 검사 로직 추가 가능
+
+        this.address = newAddress;
+        this.phoneNumber = newPhoneNumber;
     }
 
     public void addReview(Review review) {
         this.reviews.add(review);
         review.setUser(this);
     }
-
-//    public void addReminder(Reminder reminder) {
-//        this.reminders.add(reminder);
-//        reminder.setUser(this);
-//    }
-
     public void addSupportQnA(SupportQnA supportQnA) {
         this.supportQnAs.add(supportQnA);
         supportQnA.setUser(this);
