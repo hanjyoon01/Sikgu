@@ -30,9 +30,8 @@ public class UserService {
 
         String email = signupRequest.getEmail();
         String password = passwordEncoder.encode(signupRequest.getPassword());
-        String nickName = signupRequest.getNickName();
 
-        User user = User.createUser(email, password, nickName, Role.USER);
+        User user = User.createUser(email, password, Role.USER);
 
         try {
             userRepository.save(user);

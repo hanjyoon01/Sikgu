@@ -23,8 +23,6 @@ public class User extends BaseEntity {
 
     private String password;
 
-    private String nickName;
-
     private String address;
 
     private String phoneNumber;
@@ -42,7 +40,7 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SupportQnA> supportQnAs = new ArrayList<>();
 
-    public static User createUser(String email, String password, String nickName, Role role) {
+    public static User createUser(String email, String password, Role role) {
         User user = new User();
         user.email = email;
         user.password = password;
