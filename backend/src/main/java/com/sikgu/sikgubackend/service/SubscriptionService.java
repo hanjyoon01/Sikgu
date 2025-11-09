@@ -62,4 +62,17 @@ public class SubscriptionService {
 
         return SUCCESS_CARDS.contains(cleanedCardNumber);
     }
+
+    @Transactional
+    public Subscription scheduleCancellation(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자 정보를 찾을 수 없습니다: " + email));
+
+        Subscription subscription = subscriptionRepository.findByUserAndPaymentStatus(user, "SUCCESS")
+                .orElseThrow(() -> new IllegalStateException("해지할 활성 구독 정보가 없습니다."));
+
+        subscription.scheduleCancellation();
+
+        return subscriptionRepository.save(subscription);
+    }
 }

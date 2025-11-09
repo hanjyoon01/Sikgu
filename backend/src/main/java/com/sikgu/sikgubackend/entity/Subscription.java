@@ -53,4 +53,8 @@ public class Subscription extends BaseEntity {
         this.endDate = LocalDateTime.now();
         this.paymentStatus = "CANCELED";
     }
+
+    public void scheduleCancellation() {
+        this.paymentStatus = "CANCELED_AT_PERIOD_END";
+    }
 }

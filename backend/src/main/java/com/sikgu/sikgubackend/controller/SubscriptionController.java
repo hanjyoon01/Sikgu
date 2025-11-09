@@ -33,4 +33,18 @@ public class SubscriptionController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @Operation(summary = "활성 구독 해지 예약")
+    @PostMapping("/cancellation") // 💡 /subscriptions/cancellation
+    public ResponseEntity<SubscriptionResponse> scheduleCancellation(
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        String email = userDetails.getUsername();
+
+        Subscription updatedSubscription = subscriptionService.scheduleCancellation(email);
+
+        SubscriptionResponse response = new SubscriptionResponse(updatedSubscription);
+
+        return ResponseEntity.ok(response);
+    }
 }
