@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/subscription")
-@Tag(name = "구독 및 결제", description = "구독 및 결제 관련 API")
+@Tag(name = "미구현", description = "구독 및 결제 관련 API")
 public class SubscriptionController {
 
     private final SubscriptionService subscriptionService;
