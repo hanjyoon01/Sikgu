@@ -27,6 +27,8 @@ public class User extends BaseEntity {
 
     private String address;
 
+    private String phoneNumber;
+
     @Enumerated(EnumType.STRING)
     private Role role;
 
@@ -46,6 +48,13 @@ public class User extends BaseEntity {
         user.password = password;
         user.role = role;
         return user;
+    }
+
+    public void updateInfo(String newAddress, String newPhoneNumber) {
+        // 유효성 검사 로직 추가 가능
+
+        this.address = newAddress;
+        this.phoneNumber = newPhoneNumber;
     }
 
     public void addReview(Review review) {

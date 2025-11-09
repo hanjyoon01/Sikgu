@@ -1,5 +1,6 @@
 package com.sikgu.sikgubackend.controller;
 
+import com.sikgu.sikgubackend.dto.InfoRequest;
 import com.sikgu.sikgubackend.dto.UserDto;
 import com.sikgu.sikgubackend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,5 +29,17 @@ public class UserController {
         UserDto userDto = userService.getUserProfile(email);
 
         return ResponseEntity.ok(userDto);
+    }
+
+    @Operation(summary = "사용자 정보 변경")
+    @PostMapping("/info")
+    public ResponseEntity<UserDto> updateInfo(@AuthenticationPrincipal UserDetails userDetails, @RequestBody InfoRequest request) {
+        // @AuthenticationPrincipal을 사용해 현재 로그인한 사용자 정보를 가져옵니다.
+        String email = userDetails.getUsername();
+
+        // 사용자 정보를 조회하여 DTO로 변환
+        UserDto updatedUser = userService.updateInfo(email, request);
+
+        return ResponseEntity.ok(updatedUser);
     }
 }
