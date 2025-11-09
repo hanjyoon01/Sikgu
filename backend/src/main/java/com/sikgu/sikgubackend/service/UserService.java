@@ -51,7 +51,6 @@ public class UserService {
         return new UserDto(
                 user.getId(),
                 user.getEmail(),
-                user.getNickName(),
                 user.getAddress()
         );
     }

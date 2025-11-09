@@ -37,9 +37,6 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> reviews = new ArrayList<>();
 
-//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<Reminder> reminders = new ArrayList<>();
-
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SupportQnA> supportQnAs = new ArrayList<>();
 
@@ -47,7 +44,6 @@ public class User extends BaseEntity {
         User user = new User();
         user.email = email;
         user.password = password;
-        user.nickName = nickName;
         user.role = role;
         return user;
     }
@@ -56,12 +52,6 @@ public class User extends BaseEntity {
         this.reviews.add(review);
         review.setUser(this);
     }
-
-//    public void addReminder(Reminder reminder) {
-//        this.reminders.add(reminder);
-//        reminder.setUser(this);
-//    }
-
     public void addSupportQnA(SupportQnA supportQnA) {
         this.supportQnAs.add(supportQnA);
         supportQnA.setUser(this);
