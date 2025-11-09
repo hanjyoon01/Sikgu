@@ -2,57 +2,55 @@ package com.sikgu.sikgubackend.entity;
 
 import com.sikgu.sikgubackend.entity.base.BaseEntity;
 import jakarta.persistence.*;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
 
-import lombok.*;
-
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+@Getter
 @Table(name = "subscription")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Subscription extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "plan_id")
-    private Plan plan;
+    @Column(nullable = false)
+    private Long planId;
 
-    private LocalDate startDate;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
 
-    private LocalDate renewDate;
+    private String paymentStatus; // SUCCESS, FAILED
+    private Long paidAmount;
 
-    @OneToMany(mappedBy = "subscription", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<SubscribedPlant> subscribedPlants = new ArrayList<>();
+    @Builder
+    public Subscription(User user, Long planId, Long paidAmount) {
+        if (user == null || planId == null || paidAmount == null) {
+            throw new IllegalArgumentException("구독 생성에 필요한 필수 정보가 누락되었습니다.");
+        }
 
-//    @OneToMany(mappedBy = "subscription", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<Review> reviews = new ArrayList<>();
-
-    public static Subscription createSubscription(User user, Plan plan) {
-        Subscription subscription = new Subscription();
-        subscription.user = user;
-        subscription.plan = plan;
-        subscription.startDate = LocalDate.now();
-        subscription.renewDate = LocalDate.now().plusMonths(1);
-        return subscription;
+        this.user = user;
+        this.planId = planId;
+        this.paidAmount = paidAmount;
+        this.startDate = LocalDateTime.now();
+        this.endDate = LocalDateTime.now().plusMonths(1);
+        this.paymentStatus = "SUCCESS";
     }
 
-    public void addSubscribedPlant(SubscribedPlant plant) {
-        this.subscribedPlants.add(plant);
-        plant.setSubscription(this);
+    public void markAsFailed() {
+        this.paymentStatus = "FAILED";
     }
 
-//    public void addReview(Review review) {
-//        this.reviews.add(review);
-//        review.setSubscription(this);
-//    }
+    public void cancelSubscription() {
+        this.endDate = LocalDateTime.now();
+        this.paymentStatus = "CANCELED";
+    }
 }
