@@ -13,7 +13,6 @@ app.appendChild(renderer.domElement)
 
 /** Scene & Camera */
 const scene = new THREE.Scene()
-// scene.background = new THREE.Color(0x123456)
 const cubeLoader = new THREE.CubeTextureLoader()
 const skybox = cubeLoader.load([
   '/textures/skybox/px.bmp', // +X
@@ -163,7 +162,12 @@ let floorRepeatX = ROOM_WIDTH / metersPerRepeat
 let floorRepeatY = ROOM_DEPTH / metersPerRepeat
 
 // ----- 격자(Grid)는 바닥 바로 위에 얇게 -----
-let grid = new THREE.GridHelper(Math.max(ROOM_WIDTH, ROOM_DEPTH) - 0.02, 24, 0x475569, 0x334155)
+let grid = new THREE.GridHelper(
+  Math.max(ROOM_WIDTH, ROOM_DEPTH) - 0.02,
+  24,
+  0x475569,
+  0x334155
+)
 grid.position.y = FLOOR_Y + 0.01
 // scene.add(grid) // 필요하면 주석 해제
 
@@ -178,7 +182,7 @@ let floorMat = new THREE.MeshStandardMaterial({
   map: floorTex,
   roughness: 0.85,
   metalness: 0.0,
-  side: THREE.DoubleSide
+  side: THREE.DoubleSide,
 })
 let floor = new THREE.Mesh(
   new THREE.PlaneGeometry(ROOM_WIDTH, ROOM_DEPTH),
@@ -203,7 +207,7 @@ const grassMat = new THREE.MeshStandardMaterial({
   map: grassTex,
   roughness: 1.0,
   metalness: 0.0,
-  side: THREE.DoubleSide
+  side: THREE.DoubleSide,
 })
 
 // Grass plane (집보다 훨씬 큰 면)
@@ -217,7 +221,6 @@ grass.position.y = FLOOR_Y - 0.001 // 실내 바닥과 거의 같은 높이
 grass.receiveShadow = true
 
 scene.add(grass)
-
 
 // ----- 벽(Walls): 4개의 Plane으로 구성 (천장은 생략/단색 유지) -----
 const wallGroup = new THREE.Group()
@@ -243,13 +246,13 @@ const wallMatFB = new THREE.MeshStandardMaterial({
   map: wallpaperTexFB,
   roughness: 1.0,
   metalness: 0.0,
-  side: THREE.DoubleSide
+  side: THREE.DoubleSide,
 })
 const wallMatLR = new THREE.MeshStandardMaterial({
   map: wallpaperTexLR,
   roughness: 1.0,
   metalness: 0.0,
-  side: THREE.DoubleSide
+  side: THREE.DoubleSide,
 })
 
 // 초기 벽지 텍스처 반복 설정
@@ -300,7 +303,11 @@ scene.add(wallRight)
 // 필요하면 천장 추가:
 let ceiling = new THREE.Mesh(
   ceilGeo,
-  new THREE.MeshStandardMaterial({ color: 0xf7f7f7, roughness: 1, side: THREE.DoubleSide })
+  new THREE.MeshStandardMaterial({
+    color: 0xf7f7f7,
+    roughness: 1,
+    side: THREE.DoubleSide,
+  })
 )
 ceiling.position.set(0, WALL_HEIGHT, 0)
 ceiling.rotateX(Math.PI / 2)
@@ -310,20 +317,19 @@ wallGroup.add(ceiling)
 /** ===== Models config (URL, 표준 높이) ===== */
 /** ===== Models config (URL, 표준 높이) ===== */
 const MODEL_MAP = {
-
   // 대형
   euphorbia_trigona: {
     label: '유포르비아 트리고나',
     url: '/models/dynamic/big/Euphorbia_Trigona.glb',
     targetHeight: 5,
     showInToolbar: true,
-  },  
+  },
   paradise_plant: {
     label: '극락조',
     url: '/models/dynamic/big/Paradise_Plant.glb',
     targetHeight: 4.5,
     showInToolbar: true,
-  },  
+  },
   rubber_tree: {
     label: '고무나무',
     url: '/models/dynamic/big/Rubber_Tree.glb',
@@ -343,7 +349,7 @@ const MODEL_MAP = {
     url: '/models/dynamic/middle/Areca_Palm.glb',
     targetHeight: 3.5,
     showInToolbar: true,
-  },  
+  },
   monstera: {
     label: '몬스테라',
     url: '/models/dynamic/middle/Monstera.glb',
@@ -355,7 +361,7 @@ const MODEL_MAP = {
     url: '/models/dynamic/middle/Spathiphyllum.glb',
     targetHeight: 3.5,
     showInToolbar: true,
-  },  
+  },
   travelers_tree: {
     label: '여인초',
     url: '/models/dynamic/middle/Travelers_Tree.glb',
@@ -445,7 +451,7 @@ function renderModelButtons() {
   wrap.classList.add('model-buttons')
 
   for (const [key, cfg] of Object.entries(MODEL_MAP)) {
-    if (cfg.showInToolbar){
+    if (cfg.showInToolbar) {
       const btn = document.createElement('button')
       btn.dataset.model = key
       btn.textContent = cfg.label
@@ -499,6 +505,52 @@ function ensurePrototype(url) {
 
 /** ===== Utilities ===== */
 const draggable = []
+
+/** ===== 방 상태 출력 함수 ===== */
+function logRoomState(action = '') {
+  const state = {
+    action: action || '상태 확인',
+    room: {
+      width: ROOM_WIDTH,
+      depth: ROOM_DEPTH,
+      height: WALL_HEIGHT,
+    },
+    objects: draggable.map((obj) => {
+      const modelKey = obj.userData?.modelKey
+      const cfg = modelKey ? MODEL_MAP[modelKey] : null
+      const placedOn = obj.userData?.placedOn
+      const placedItems = obj.userData?.placedItems || []
+
+      return {
+        modelKey: modelKey || 'unknown',
+        label: cfg?.label || '알 수 없음',
+        position: {
+          x: Math.round(obj.position.x * 100) / 100,
+          y: Math.round(obj.position.y * 100) / 100,
+          z: Math.round(obj.position.z * 100) / 100,
+        },
+        rotation: {
+          y: Math.round(((obj.rotation.y * 180) / Math.PI) * 100) / 100, // 도 단위로 변환
+        },
+        placedOn: placedOn
+          ? {
+              modelKey: placedOn.userData?.modelKey || 'unknown',
+              label:
+                MODEL_MAP[placedOn.userData?.modelKey]?.label || '알 수 없음',
+            }
+          : null,
+        placedItemsCount: placedItems.length,
+        placedItems: placedItems.map((item) => ({
+          modelKey: item.userData?.modelKey || 'unknown',
+          label: MODEL_MAP[item.userData?.modelKey]?.label || '알 수 없음',
+        })),
+      }
+    }),
+  }
+
+  console.log('=== 방 상태 ===', state)
+  return state
+}
 
 function getHalfHeight(obj) {
   const box = new THREE.Box3().setFromObject(obj)
@@ -715,7 +767,7 @@ async function addModelByKey(key, posXZ = null) {
     console.warn('Model config not found for key:', key)
     return
   }
-  
+
   try {
     const base = await ensurePrototype(cfg.url)
     const model = base.clone(true)
@@ -738,13 +790,16 @@ async function addModelByKey(key, posXZ = null) {
 
     // 모델 키 저장 (나중에 canPlaceOn 확인용)
     model.userData.modelKey = key
-    
+
     // 드래그 대상 등록
     // model.userData.kind =
     //   key.includes('sofa') || key.includes('coffee') ? 'furniture' : 'plant'
     // applyShadowPolicyTo(model) // ← 추가
     // scene.add(model)
     draggable.push(model)
+
+    // 방 상태 출력
+    logRoomState(`모델 생성: ${cfg.label}`)
   } catch (error) {
     console.error('Failed to add model:', key, error)
     alert(`모델 "${cfg.label}" 로딩에 실패했습니다. 콘솔을 확인하세요.`)
@@ -759,6 +814,11 @@ let dragPlane = null
 let dragOffset = new THREE.Vector3()
 let selectedHalfH = 0
 let isPointerDown = false
+let previewModel = null // 프리뷰 모델
+let previewBaseObj = null // 프리뷰가 표시되는 가구
+let isDoubleClick = false // 더블클릭 발생 여부
+let lastClickTime = 0 // 마지막 클릭 시간
+let clickTimeout = null // 클릭 타임아웃
 
 function setMouseFromEvent(e) {
   const rect = renderer.domElement.getBoundingClientRect()
@@ -782,6 +842,9 @@ function pick(e) {
     const hitPoint = new THREE.Vector3()
     raycaster.ray.intersectPlane(dragPlane, hitPoint)
     dragOffset.copy(selected.position).sub(hitPoint)
+
+    // 기존 프리뷰 제거
+    removePreview()
 
     controls.enabled = false
     renderer.domElement.style.cursor = 'grabbing'
@@ -829,57 +892,261 @@ function move(e) {
     if (placedItems && placedItems.length > 0) {
       const offset = new THREE.Vector3()
       offset.subVectors(selected.position, oldPos)
-      
-      placedItems.forEach(item => {
+
+      placedItems.forEach((item) => {
         if (item && item.parent) {
           // 아이템도 같은 거리만큼 이동
           item.position.add(offset)
         }
       })
     }
+
+    // 프리뷰 업데이트 (가구 위에 올릴 수 있는지 확인)
+    updatePreview()
   }
 }
 
-function drop() {
+// 프리뷰 제거 함수
+function removePreview() {
+  if (previewModel) {
+    scene.remove(previewModel)
+    previewModel = null
+    previewBaseObj = null
+  }
+}
+
+// 프리뷰 업데이트 함수
+function updatePreview() {
+  if (!selected) {
+    removePreview()
+    return
+  }
+
+  // 드래그 위치에서 아래로 레이캐스팅하여 가구 위에 올려놓을 수 있는지 확인
+  const checkPoint = selected.position.clone()
+  checkPoint.y += 1.0 // 객체 위에서 시작해서 아래로 쏘기
+
+  const downRay = new THREE.Raycaster(
+    checkPoint,
+    new THREE.Vector3(0, -1, 0), // 아래 방향
+    0, // near
+    15 // far (충분히 긴 거리)
+  )
+
+  // 선택된 객체의 모델 키 확인
+  const selectedKey = selected.userData?.modelKey
+  const selectedCfg = selectedKey ? MODEL_MAP[selectedKey] : null
+
+  // 선택된 객체가 가구인지 확인 (가구는 가구 위에 올릴 수 없음, 단 꽃병과 텔레비전은 예외)
+  const isFurniture =
+    selectedKey &&
+    [
+      'sofa',
+      'coffee_table',
+      'sideboard',
+      // 'television', // 텔레비전은 사이드보드 위에 올릴 수 있음
+      'console_table',
+      // 'flower_vase', // 꽃병은 가구 위에 올릴 수 있음
+    ].includes(selectedKey)
+
+  // 가구는 가구 위에 올릴 수 없음 (꽃병과 텔레비전 제외)
+  if (isFurniture) {
+    removePreview()
+    return
+  }
+
+  // canPlaceOn이 true인 가구들만 체크 (꽃병 제외)
+  // 텔레비전의 경우 사이드보드만 허용
+  const placeableFurniture = draggable.filter((obj) => {
+    if (obj === selected) return false // 자기 자신은 제외
+    const modelKey = obj.userData?.modelKey
+    if (modelKey && MODEL_MAP[modelKey]) {
+      const objCfg = MODEL_MAP[modelKey]
+
+      // 꽃병 위에는 아무것도 올릴 수 없음
+      if (modelKey === 'flower_vase') {
+        return false
+      }
+
+      // 텔레비전인 경우 사이드보드만 허용
+      if (selectedCfg?.onlyOnSideboard) {
+        return modelKey === 'sideboard'
+      }
+
+      // 일반적으로 canPlaceOn이 true인 가구
+      return objCfg.canPlaceOn || false
+    }
+    return false
+  })
+
+  // 레이캐스팅으로 가구 감지
+  const hits = downRay.intersectObjects(placeableFurniture, true)
+
+  // 레이캐스팅이 실패한 경우, 위치 기반으로 가장 가까운 가구 찾기
+  let baseObj = null
+  if (hits.length > 0) {
+    baseObj = hits[0].object
+    while (baseObj && !draggable.includes(baseObj)) baseObj = baseObj.parent
+  } else {
+    // 레이캐스팅 실패 시, 가장 가까운 가구 찾기
+    let minDist = Infinity
+    placeableFurniture.forEach((obj) => {
+      const dist = selected.position.distanceTo(obj.position)
+      if (dist < minDist && dist < 3) {
+        // 3미터 이내
+        minDist = dist
+        baseObj = obj
+      }
+    })
+  }
+
+  // 가구 위에 올릴 수 있는 경우 프리뷰 표시
+  if (baseObj && baseObj !== selected) {
+    // 같은 가구 위면 프리뷰 위치만 업데이트
+    if (previewBaseObj === baseObj && previewModel) {
+      // 프리뷰 위치 업데이트 (가구 중심에 고정)
+      const baseBox = new THREE.Box3().setFromObject(baseObj)
+      const objBox = new THREE.Box3().setFromObject(previewModel)
+      const objSize = new THREE.Vector3()
+      objBox.getSize(objSize)
+
+      const topY = baseBox.max.y
+      const hh = objSize.y / 2
+      // 가구의 중심 위치에 고정
+      previewModel.position.set(
+        baseObj.position.x,
+        topY + hh + 0.01,
+        baseObj.position.z
+      )
+      // 원본 모델의 회전도 반영
+      previewModel.rotation.y = selected.rotation.y
+    } else {
+      // 새로운 가구 위에 올릴 수 있으면 프리뷰 생성
+      removePreview()
+
+      // 프리뷰 모델 생성 (원본의 클론)
+      previewModel = selected.clone(true)
+
+      // 프리뷰 모델을 반투명하게 만들기
+      previewModel.traverse((child) => {
+        if (child.isMesh) {
+          if (child.material) {
+            // Material이 배열인 경우 처리
+            if (Array.isArray(child.material)) {
+              child.material = child.material.map((mat) => {
+                const previewMat = mat.clone()
+                previewMat.transparent = true
+                previewMat.opacity = 0.4
+                previewMat.emissive = new THREE.Color(0x4488ff).multiplyScalar(
+                  0.2
+                ) // 약간의 파란색 발광
+                return previewMat
+              })
+            } else {
+              const previewMat = child.material.clone()
+              previewMat.transparent = true
+              previewMat.opacity = 0.4
+              previewMat.emissive = new THREE.Color(0x4488ff).multiplyScalar(
+                0.2
+              ) // 약간의 파란색 발광
+              child.material = previewMat
+            }
+            child.castShadow = false
+            child.receiveShadow = false
+          }
+        }
+      })
+
+      // 가구 위에 배치
+      placeOnTopOf(previewModel, baseObj, 0.01)
+      previewModel.rotation.y = selected.rotation.y
+
+      scene.add(previewModel)
+      previewBaseObj = baseObj
+    }
+  } else {
+    // 가구 위에 올릴 수 없으면 프리뷰 제거
+    removePreview()
+  }
+}
+
+function drop(skipLog = false) {
+  // 프리뷰 제거
+  removePreview()
+
   if (selected) {
     // 드롭 위치에서 아래로 레이캐스팅하여 가구 위에 올려놓을 수 있는지 확인
     // 여러 지점에서 레이캐스팅하여 더 정확하게 감지
     const dropPoint = selected.position.clone()
     dropPoint.y += 1.0 // 객체 위에서 시작해서 아래로 쏘기
-    
+
     const downRay = new THREE.Raycaster(
       dropPoint,
       new THREE.Vector3(0, -1, 0), // 아래 방향
       0, // near
       15 // far (충분히 긴 거리)
     )
-    
+
     // 선택된 객체의 모델 키 확인
     const selectedKey = selected.userData?.modelKey
     const selectedCfg = selectedKey ? MODEL_MAP[selectedKey] : null
-    
-    // canPlaceOn이 true인 가구들만 체크
+
+    // 선택된 객체가 가구인지 확인 (가구는 가구 위에 올릴 수 없음, 단 꽃병과 텔레비전은 예외)
+    const isFurniture =
+      selectedKey &&
+      [
+        'sofa',
+        'coffee_table',
+        'sideboard',
+        // 'television', // 텔레비전은 사이드보드 위에 올릴 수 있음
+        'console_table',
+        // 'flower_vase', // 꽃병은 가구 위에 올릴 수 있음
+      ].includes(selectedKey)
+
+    // 가구는 가구 위에 올릴 수 없음 (꽃병과 텔레비전 제외) - 바닥에 배치
+    if (isFurniture) {
+      selected.position.y = selectedHalfH
+      selected.userData.placedOn = null
+
+      // 방 상태 출력 (실제로 객체를 드래그한 경우에만, 더블클릭이 아닐 때만)
+      if (!skipLog) {
+        logRoomState('객체 이동/배치')
+      }
+
+      selected = null
+      dragPlane = null
+      controls.enabled = true
+      renderer.domElement.style.cursor = 'default'
+      return
+    }
+
+    // canPlaceOn이 true인 가구들만 체크 (꽃병 제외)
     // 텔레비전의 경우 사이드보드만 허용
-    const placeableFurniture = draggable.filter(obj => {
+    const placeableFurniture = draggable.filter((obj) => {
       if (obj === selected) return false // 자기 자신은 제외
       const modelKey = obj.userData?.modelKey
       if (modelKey && MODEL_MAP[modelKey]) {
         const objCfg = MODEL_MAP[modelKey]
-        
+
+        // 꽃병 위에는 아무것도 올릴 수 없음
+        if (modelKey === 'flower_vase') {
+          return false
+        }
+
         // 텔레비전인 경우 사이드보드만 허용
         if (selectedCfg?.onlyOnSideboard) {
           return modelKey === 'sideboard'
         }
-        
+
         // 일반적으로 canPlaceOn이 true인 가구
         return objCfg.canPlaceOn || false
       }
       return false
     })
-    
+
     // 레이캐스팅으로 가구 감지
     const hits = downRay.intersectObjects(placeableFurniture, true)
-    
+
     // 레이캐스팅이 실패한 경우, 위치 기반으로 가장 가까운 가구 찾기
     let baseObj = null
     if (hits.length > 0) {
@@ -888,19 +1155,20 @@ function drop() {
     } else {
       // 레이캐스팅 실패 시, 가장 가까운 가구 찾기
       let minDist = Infinity
-      placeableFurniture.forEach(obj => {
+      placeableFurniture.forEach((obj) => {
         const dist = selected.position.distanceTo(obj.position)
-        if (dist < minDist && dist < 3) { // 3미터 이내
+        if (dist < minDist && dist < 3) {
+          // 3미터 이내
           minDist = dist
           baseObj = obj
         }
       })
     }
-    
+
     if (baseObj && baseObj !== selected) {
       // 가구 위에 올려놓기
       placeOnTopOf(selected, baseObj, 0.01)
-      
+
       // userData에 부모 정보 저장
       selected.userData.placedOn = baseObj
       if (!baseObj.userData.placedItems) {
@@ -914,8 +1182,13 @@ function drop() {
       selected.position.y = selectedHalfH
       selected.userData.placedOn = null
     }
+
+    // 방 상태 출력 (실제로 객체를 드래그한 경우에만, 더블클릭이 아닐 때만)
+    if (!skipLog) {
+      logRoomState('객체 이동/배치')
+    }
   }
-  
+
   selected = null
   dragPlane = null
   controls.enabled = true
@@ -938,7 +1211,7 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
         // 테이블 위에 올려진 아이템들을 바닥에 배치
         const placedItems = obj.userData?.placedItems
         if (placedItems && placedItems.length > 0) {
-          placedItems.forEach(item => {
+          placedItems.forEach((item) => {
             if (item && item.parent) {
               // 바닥에 배치
               const hh = getHalfHeight(item)
@@ -947,10 +1220,17 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
             }
           })
         }
-        
+
+        const modelKey = obj.userData?.modelKey
+        const cfg = modelKey ? MODEL_MAP[modelKey] : null
+        const label = cfg?.label || '알 수 없음'
+
         scene.remove(obj)
         const idx = draggable.indexOf(obj)
         if (idx !== -1) draggable.splice(idx, 1)
+
+        // 방 상태 출력
+        logRoomState(`객체 삭제: ${label}`)
       }
     }
     return
@@ -958,6 +1238,30 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
 
   // 좌클릭 → 드래그
   if (e.button === 0) {
+    // 더블클릭 감지: 짧은 시간 내 두 번 클릭하면 더블클릭으로 간주
+    const now = Date.now()
+    const timeSinceLastClick = now - lastClickTime
+    lastClickTime = now
+
+    // 이전 클릭 타임아웃이 있으면 취소
+    if (clickTimeout) {
+      clearTimeout(clickTimeout)
+      clickTimeout = null
+    }
+
+    // 짧은 시간 내 두 번 클릭된 경우 더블클릭으로 간주하고 pick() 호출하지 않음
+    if (timeSinceLastClick < 300) {
+      // 더블클릭으로 간주, pick() 호출하지 않음
+      return
+    }
+
+    // 더블클릭이 아닌 경우에만 pick() 호출
+    // 하지만 잠시 후 더블클릭이 발생할 수 있으므로 타임아웃 설정
+    clickTimeout = setTimeout(() => {
+      // 타임아웃이 지나면 일반 클릭으로 처리
+      clickTimeout = null
+    }, 300)
+
     isPointerDown = true
     pick(e)
   }
@@ -970,23 +1274,54 @@ renderer.domElement.addEventListener('pointermove', (e) => {
 
 window.addEventListener('pointerup', () => {
   isPointerDown = false
-  drop()
+  // 더블클릭이 발생한 경우 drop()에서 출력하지 않도록 플래그 확인
+  const wasDoubleClick = isDoubleClick
+  if (wasDoubleClick) {
+    isDoubleClick = false // 플래그 리셋
+    selected = null // selected도 null로 설정
+    return // 더블클릭인 경우 drop() 호출하지 않음
+  }
+  drop(false)
 })
 
 /** 더블클릭으로 객체 90도 회전 */
 renderer.domElement.addEventListener('dblclick', (e) => {
   e.preventDefault()
+  e.stopPropagation()
+  // 더블클릭 플래그 설정
+  isDoubleClick = true
+  // 더블클릭은 드래그가 아니므로 selected를 null로 설정
+  selected = null
+  // 클릭 타임아웃 취소
+  if (clickTimeout) {
+    clearTimeout(clickTimeout)
+    clickTimeout = null
+  }
+
   setMouseFromEvent(e)
   raycaster.setFromCamera(mouseNDC, camera)
   const hits = raycaster.intersectObjects(draggable, true)
-  
+
   if (hits.length) {
     let obj = hits[0].object
     while (obj && !draggable.includes(obj)) obj = obj.parent
     if (obj) {
       // Y축으로 90도 회전
       obj.rotation.y += Math.PI / 2
-      
+
+      // 위에 올라가 있는 아이템들도 함께 회전
+      const placedItems = obj.userData?.placedItems
+      if (placedItems && placedItems.length > 0) {
+        placedItems.forEach((item) => {
+          if (item && item.parent) {
+            // 같은 각도만큼 회전
+            item.rotation.y += Math.PI / 2
+            // 회전 후 위치 재조정 (가구 위에 다시 올리기)
+            placeOnTopOf(item, obj, 0.01)
+          }
+        })
+      }
+
       // 벽에 붙은 객체의 경우, 회전 후에도 벽에 맞게 재배치
       const wallSide = obj.userData?.wallSide
       if (wallSide) {
@@ -995,9 +1330,9 @@ renderer.domElement.addEventListener('dblclick', (e) => {
         const halfW = ROOM_WIDTH / 2
         const halfD = ROOM_DEPTH / 2
         const gap = 0.03
-        
+
         const current = obj.position.clone()
-        
+
         // 회전 후 크기가 바뀌었을 수 있으므로 다시 계산
         if (wallSide === 'back') {
           obj.position.set(current.x, hh, -halfD + size.z / 2 + gap)
@@ -1008,11 +1343,26 @@ renderer.domElement.addEventListener('dblclick', (e) => {
         } else if (wallSide === 'right') {
           obj.position.set(+halfW - size.x / 2 - gap, hh, current.z)
         }
+
+        // 벽에 붙은 객체 위의 아이템들도 위치 재조정
+        if (placedItems && placedItems.length > 0) {
+          placedItems.forEach((item) => {
+            if (item && item.parent) {
+              placeOnTopOf(item, obj, 0.01)
+            }
+          })
+        }
       } else {
         // 일반 객체는 높이만 재조정
         const hh = getHalfHeight(obj)
         obj.position.y = hh
       }
+
+      // 방 상태 출력
+      const modelKey = obj.userData?.modelKey
+      const cfg = modelKey ? MODEL_MAP[modelKey] : null
+      const label = cfg?.label || '알 수 없음'
+      logRoomState(`객체 회전: ${label}`)
     }
   }
 })
@@ -1036,7 +1386,14 @@ applyRoomSizeBtn.addEventListener('click', () => {
   const width = parseFloat(roomWidthInput.value)
   const depth = parseFloat(roomDepthInput.value)
   const height = parseFloat(roomHeightInput.value)
-  if (!isNaN(width) && !isNaN(depth) && !isNaN(height) && width > 0 && depth > 0 && height > 0) {
+  if (
+    !isNaN(width) &&
+    !isNaN(depth) &&
+    !isNaN(height) &&
+    width > 0 &&
+    depth > 0 &&
+    height > 0
+  ) {
     updateRoomSize(width, depth, height)
   }
 })
@@ -1079,20 +1436,20 @@ function clampCameraToRoom() {
   const margin = 0.5 // 벽에서 떨어질 최소 거리
   const minY = 0.5 // 바닥에서 최소 높이
   const maxY = WALL_HEIGHT - 0.5 // 천장에서 최소 거리
-  
+
   const halfW = ROOM_WIDTH / 2 - margin
   const halfD = ROOM_DEPTH / 2 - margin
-  
+
   // 카메라 위치 제한
   camera.position.x = THREE.MathUtils.clamp(camera.position.x, -halfW, halfW)
   camera.position.y = THREE.MathUtils.clamp(camera.position.y, minY, maxY)
   camera.position.z = THREE.MathUtils.clamp(camera.position.z, -halfD, halfD)
-  
+
   // 타겟 위치도 방 안으로 제한
   controls.target.x = THREE.MathUtils.clamp(controls.target.x, -halfW, halfW)
   controls.target.y = THREE.MathUtils.clamp(controls.target.y, 0, WALL_HEIGHT)
   controls.target.z = THREE.MathUtils.clamp(controls.target.z, -halfD, halfD)
-  
+
   // 줌 범위도 방 크기에 맞게 업데이트
   controls.minDistance = 1
   controls.maxDistance = Math.max(ROOM_WIDTH, ROOM_DEPTH, WALL_HEIGHT) * 1.5
@@ -1114,7 +1471,7 @@ const keys = {
   KeyW: false,
   KeyS: false,
   KeyA: false,
-  KeyD: false
+  KeyD: false,
 }
 
 const cameraMoveSpeed = 0.15 // 카메라 이동 속도
@@ -1136,24 +1493,38 @@ window.addEventListener('keyup', (e) => {
 
 // 카메라 이동 처리 함수
 function handleCameraMovement() {
-  if (!keys.ArrowUp && !keys.ArrowDown && !keys.ArrowLeft && !keys.ArrowRight &&
-      !keys.KeyW && !keys.KeyS && !keys.KeyA && !keys.KeyD) {
+  if (
+    !keys.ArrowUp &&
+    !keys.ArrowDown &&
+    !keys.ArrowLeft &&
+    !keys.ArrowRight &&
+    !keys.KeyW &&
+    !keys.KeyS &&
+    !keys.KeyA &&
+    !keys.KeyD
+  ) {
     return // 아무 키도 눌리지 않음
   }
 
   // 카메라의 현재 방향 계산
   const direction = new THREE.Vector3()
   camera.getWorldDirection(direction)
-  
+
   // 수평면에서의 방향 (Y축 제거)
-  const horizontalDirection = new THREE.Vector3(direction.x, 0, direction.z).normalize()
-  
+  const horizontalDirection = new THREE.Vector3(
+    direction.x,
+    0,
+    direction.z
+  ).normalize()
+
   // 오른쪽 방향 (카메라의 오른쪽)
   const rightDirection = new THREE.Vector3()
-  rightDirection.crossVectors(horizontalDirection, new THREE.Vector3(0, 1, 0)).normalize()
-  
+  rightDirection
+    .crossVectors(horizontalDirection, new THREE.Vector3(0, 1, 0))
+    .normalize()
+
   const moveVector = new THREE.Vector3(0, 0, 0)
-  
+
   // 앞/뒤 이동 (위/아래 화살표 또는 W/S)
   if (keys.ArrowUp || keys.KeyW) {
     moveVector.add(horizontalDirection.clone().multiplyScalar(cameraMoveSpeed))
@@ -1161,7 +1532,7 @@ function handleCameraMovement() {
   if (keys.ArrowDown || keys.KeyS) {
     moveVector.add(horizontalDirection.clone().multiplyScalar(-cameraMoveSpeed))
   }
-  
+
   // 좌/우 이동 (좌/우 화살표 또는 A/D)
   if (keys.ArrowRight || keys.KeyD) {
     moveVector.add(rightDirection.clone().multiplyScalar(cameraMoveSpeed))
@@ -1169,7 +1540,7 @@ function handleCameraMovement() {
   if (keys.ArrowLeft || keys.KeyA) {
     moveVector.add(rightDirection.clone().multiplyScalar(-cameraMoveSpeed))
   }
-  
+
   // 카메라와 타겟 모두 이동
   camera.position.add(moveVector)
   controls.target.add(moveVector)
@@ -1209,155 +1580,6 @@ function makeWallWithWindow(width, height, holeRect, material) {
   return mesh
 }
 
-// 앱 시작 시 소파와 테이블을 자동 배치 (주석 처리 - 자동 배치 비활성화)
-/*
-;(async function spawnInitialSofaAndTable() {
-  // 1) 소파
-  const sofaCfg = MODEL_MAP.sofa
-  if (!sofaCfg) return
-
-  const sofaBase = await ensurePrototype(sofaCfg.url)
-  const sofa = sofaBase.clone(true)
-  normalizeHeight(sofa, sofaCfg.targetHeight)
-  placeOnFloor(sofa, new THREE.Vector3(0, 0, 0))
-  scene.add(sofa)
-
-  // 기본은 'back'(뒷벽 z=-half)에 붙임. 원하면 'left' | 'right' | 'front'로 변경
-  placeAgainstWall(sofa, 'back', 0.03)
-  // 중앙 정렬(뒷/앞벽이면 x=0, 좌/우벽이면 z=0)
-  const hh = getHalfHeight(sofa)
-  sofa.position.set(0, hh, sofa.position.z)
-  // draggable.push(sofa)
-
-  // 2) 테이블 – 소파 앞에 자동 배치
-  const tableCfg = MODEL_MAP.coffee_table
-  if (!tableCfg) return
-
-  const tableBase = await ensurePrototype(tableCfg.url)
-  const table = tableBase.clone(true)
-  normalizeHeight(table, tableCfg.targetHeight)
-
-  // 소파 앞에 배치하고 씬에 추가
-  // (gap은 취향껏 0.15~0.35 정도)
-  scene.add(table)
-  placeInFrontOf(table, sofa, 0.8)
-
-  // draggable.push(table)
-
-  // sofa.userData.kind = 'furniture'
-  // applyShadowPolicyTo(sofa)
-  // table.userData.kind = 'furniture'
-  // applyShadowPolicyTo(table)
-})()
-
-// 앱 시작 시 거실장 + TV 자동 배치 (소파 반대편 벽)
-;(async function spawnSideboardAndTV() {
-  // 소파 참조 찾기(이전에 스폰된 소파가 있어야 이상적)
-  const sofa =
-    draggable.find(
-      (o) => o.userData?.kind === 'furniture' && /sofa/i.test(o.name || '')
-    ) ||
-    draggable.find(
-      (o) => o.userData?.kind === 'furniture' && o.userData.wallSide
-    ) ||
-    null
-
-  // 소파가 어떤 벽에 붙었는지 확인 → 반대편 벽 결정
-  const sofaSide = sofa?.userData?.wallSide // || 'back' // 기본값 가정
-  const boardSide = oppositeSide(sofaSide) // 소파 반대편
-
-  // 1) 거실장
-  const boardCfg = MODEL_MAP.sideboard
-  if (!boardCfg) return
-  const boardBase = await ensurePrototype(boardCfg.url)
-  const board = boardBase.clone(true)
-  board.userData.kind = 'furniture'
-  normalizeHeight(board, boardCfg.targetHeight)
-
-  // 우선 바닥에 놓고 장면에 추가
-  placeOnFloor(board, new THREE.Vector3(0, 0, 0))
-  scene.add(board)
-
-  // 반대편 벽에 밀착 + 중앙 정렬
-  placeAgainstWall(board, boardSide, 0.02)
-  const bh = getHalfHeight(board)
-  if (boardSide === 'back' || boardSide === 'front')
-    board.position.set(0, bh, board.position.z)
-  if (boardSide === 'left' || boardSide === 'right')
-    board.position.set(board.position.x, bh, 0)
-
-  applyShadowPolicyTo?.(board) // 퍼포먼스 정책 사용 중이면 적용
-  // draggable.push(board)
-
-  // 2) TV (거실장 위)
-  const tvCfg = MODEL_MAP.television
-  if (!tvCfg) return
-  const tvBase = await ensurePrototype(tvCfg.url)
-  const tv = tvBase.clone(true)
-  tv.userData.kind = 'furniture'
-  normalizeHeight(tv, tvCfg.targetHeight)
-
-  // 씬에 추가 후 거실장 위 중앙에 올리기
-  scene.add(tv)
-  placeOnTopOf(tv, board, 0.015)
-
-  // TV가 방 안쪽을 바라보도록(거실장과 동일 회전이지만, 혹시 반대로 왔다면 반전)
-  // placeAgainstWall 사용 시 board 회전이 이미 방 안쪽을 향하므로 보통 필요 없음.
-  // 필요 시 아래 주석 해제:
-  // tv.rotation.y = board.rotation.y
-
-  applyShadowPolicyTo?.(tv)
-  // draggable.push(tv)
-
-  board.userData.role = 'sideboard'
-  tv.userData.role = 'tv'
-})()
-
-// 앱 시작 시: front(정면) 벽의 "오른쪽"에 콘솔 테이블 + 그 위 꽃병 자동 배치
-;(async function spawnConsoleTableAndVaseOnFrontLeft() {
-  const halfW = ROOM_WIDTH / 2
-
-  // 1) 콘솔 테이블
-  const tCfg = MODEL_MAP.console_table
-  if (!tCfg) return
-  const tBase = await ensurePrototype(tCfg.url)
-  const table = tBase.clone(true)
-  table.userData.kind = 'furniture'
-  normalizeHeight(table, tCfg.targetHeight)
-
-  // 씬에 추가 후 front 벽에 밀착
-  scene.add(table)
-  // gap은 벽에서 떨어지는 거리(미세)
-  placeAgainstWall(table, 'front', 0.02)
-
-  // "오른쪽" 끝으로 이동 (방의 +X 방향)
-  const tSize = getWorldSize(table)
-  const margin = 1.5 // 벽 모서리에서 살짝 띄우는 여유
-  const hh = getHalfHeight(table)
-  // front 벽은 z=+half 쪽, placeAgainstWall에서 z를 이미 세팅해줌 → x만 조정
-  table.position.set(halfW - tSize.x / 2 - margin, hh, table.position.z)
-
-  // 그림자/성능 정책 사용 중이면 적용
-  if (typeof applyShadowPolicyTo === 'function') applyShadowPolicyTo(table)
-  // draggable.push(table)
-
-  // 2) 꽃병
-  const vCfg = MODEL_MAP.flower_vase
-  if (!vCfg) return
-  const vBase = await ensurePrototype(vCfg.url)
-  const vase = vBase.clone(true)
-  vase.userData.kind = 'decor'
-  normalizeHeight(vase, vCfg.targetHeight)
-
-  // 씬에 추가 후 테이블 위 중앙에 올리기
-  scene.add(vase)
-  placeOnTopOf(vase, table, 0.01)
-
-  if (typeof applyShadowPolicyTo === 'function') applyShadowPolicyTo(vase)
-  // draggable.push(vase)
-})()
-*/
-
 /** ===== 방 크기 변경 함수 ===== */
 function updateRoomSize(width, depth, height) {
   // 최소 크기 제한
@@ -1389,7 +1611,12 @@ function updateRoomSize(width, depth, height) {
   // 격자 업데이트
   if (grid.parent) scene.remove(grid)
   grid.dispose()
-  grid = new THREE.GridHelper(Math.max(ROOM_WIDTH, ROOM_DEPTH) - 0.02, 24, 0x475569, 0x334155)
+  grid = new THREE.GridHelper(
+    Math.max(ROOM_WIDTH, ROOM_DEPTH) - 0.02,
+    24,
+    0x475569,
+    0x334155
+  )
   grid.position.y = FLOOR_Y + 0.01
   // scene.add(grid) // 필요하면 주석 해제
 
@@ -1403,17 +1630,17 @@ function updateRoomSize(width, depth, height) {
   }
   wallGeoFB.dispose()
   wallGeoFB = new THREE.PlaneGeometry(ROOM_WIDTH, WALL_HEIGHT)
-  
+
   // 벽지 텍스처 반복 업데이트
   // 앞/뒷벽: 가로(ROOM_WIDTH) x 세로(WALL_HEIGHT)
   wallpaperTexFB.repeat.set(wallRepeatX, wallRepeatY)
   // 좌/우벽: 가로(ROOM_DEPTH) x 세로(WALL_HEIGHT)
   wallpaperTexLR.repeat.set(wallRepeatZ, wallRepeatY)
-  
+
   // 앞벽 업데이트
   wallFront.geometry = new THREE.PlaneGeometry(ROOM_WIDTH, WALL_HEIGHT)
   wallFront.position.set(0, WALL_HEIGHT / 2, ROOM_DEPTH / 2)
-  
+
   // 뒷벽 업데이트
   wallBack.geometry = new THREE.PlaneGeometry(ROOM_WIDTH, WALL_HEIGHT)
   wallBack.position.set(0, WALL_HEIGHT / 2, -ROOM_DEPTH / 2)
@@ -1423,7 +1650,7 @@ function updateRoomSize(width, depth, height) {
   scene.remove(wallRight)
   if (wallLeft.geometry) wallLeft.geometry.dispose()
   if (wallRight.geometry) wallRight.geometry.dispose()
-  
+
   wallLeft = makeWallWithWindow(
     ROOM_DEPTH,
     WALL_HEIGHT,
@@ -1433,7 +1660,7 @@ function updateRoomSize(width, depth, height) {
   wallLeft.position.set(-ROOM_WIDTH / 2, WALL_HEIGHT / 2, 0)
   wallLeft.rotateY(Math.PI / 2)
   scene.add(wallLeft)
-  
+
   wallRight = makeWallWithWindow(
     ROOM_DEPTH,
     WALL_HEIGHT,
@@ -1460,12 +1687,29 @@ function updateRoomSize(width, depth, height) {
   // 기존 객체들을 방 범위 내로 재조정
   draggable.forEach((obj) => {
     const { x, z } = clampInRoomXZ(obj.position.x, obj.position.z)
-    const hh = getHalfHeight(obj)
-    obj.position.set(x, hh, z)
+
+    // 가구 위에 올라가 있는 아이템인 경우 가구 위에 유지
+    const placedOn = obj.userData?.placedOn
+    if (placedOn && placedOn.parent) {
+      // 가구의 위치도 먼저 재조정
+      const baseXZ = clampInRoomXZ(placedOn.position.x, placedOn.position.z)
+      const baseHh = getHalfHeight(placedOn)
+      placedOn.position.set(baseXZ.x, baseHh, baseXZ.z)
+
+      // 가구 위의 아이템 위치 재조정
+      placeOnTopOf(obj, placedOn, 0.01)
+    } else {
+      // 바닥에 있는 객체는 바닥 높이로 재조정
+      const hh = getHalfHeight(obj)
+      obj.position.set(x, hh, z)
+    }
   })
-  
+
   // 카메라도 방 범위 내로 재조정
   clampCameraToRoom()
+
+  // 방 상태 출력
+  logRoomState(`방 크기 변경: ${width}m x ${depth}m x ${height}m`)
 }
 
 // 식물/가구에 따라 그림자 정책 적용
