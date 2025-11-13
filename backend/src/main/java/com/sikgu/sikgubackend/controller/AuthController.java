@@ -1,8 +1,11 @@
 package com.sikgu.sikgubackend.controller;
 
 import com.sikgu.sikgubackend.dto.LoginRequest;
+import com.sikgu.sikgubackend.dto.PasswordResetExecution;
+import com.sikgu.sikgubackend.dto.PasswordResetRequest;
 import com.sikgu.sikgubackend.dto.SignupRequest;
 import com.sikgu.sikgubackend.security.jwt.util.JwtTokenUtil;
+import com.sikgu.sikgubackend.service.AuthService;
 import com.sikgu.sikgubackend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +24,7 @@ public class AuthController {
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenUtil jwtTokenUtil;
+    private final AuthService authService;
 
     @Operation(summary = "회원가입")
     @PostMapping("/signup")
@@ -42,5 +46,19 @@ public class AuthController {
         String token = jwtTokenUtil.generateToken(authentication.getName());
 
         return ResponseEntity.ok(token);
+    }
+
+    @PostMapping("/reset-password-request")
+    public ResponseEntity<String> resetPasswordRequest(@RequestBody PasswordResetRequest request) {
+         authService.generateResetTokenAndSendEmail(request.getEmail());
+
+        return ResponseEntity.ok("비밀번호 재설정 링크가 이메일로 전송되었습니다.");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody PasswordResetExecution execution) {
+         authService.resetPassword(execution.getToken(), execution.getNewPassword());
+
+        return ResponseEntity.ok("비밀번호가 성공적으로 재설정되었습니다.");
     }
 }
