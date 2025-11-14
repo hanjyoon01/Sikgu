@@ -10,7 +10,7 @@ http://localhost:8081/h2-console/login.jsp
 
 **`Swagger`** 
 api 스펙 확인 
-http://localhost:8081/swagger-ui/index.html
+http://localhost:8080/swagger-ui/index.html
 
 ---
 
