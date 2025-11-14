@@ -311,10 +311,48 @@ export default function PlantDetail() {
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
   const { addItem } = useCart();
+  const queryClient = useQueryClient();
 
   // URL에서 ID 추출하여 해당 식물 찾기
   const plantId = params?.id ? parseInt(params.id) : null;
   const plant = plantDetails.find(p => p.id === plantId);
+
+  const purchaseMutation = useMutation({
+    mutationFn: async (orderData: {
+      plantId: string;
+      plantName: string;
+      size: string;
+      coinsUsed: number;
+      quantity: number;
+    }) => {
+      const response = await apiRequest("POST", "/api/orders", orderData);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+      toast({
+        title: "구매 완료!",
+        description: "식물이 성공적으로 구매되었습니다.",
+      });
+      setLocation("/mypage?tab=subscription");
+    },
+    onError: (error: any) => {
+      if (error.error === "insufficient_coins") {
+        toast({
+          title: "보유 코인이 부족합니다",
+          description: `현재 코인: ${error.currentCoins}, 필요 코인: ${error.requiredCoins}`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "구매 실패",
+          description: error.message || "다시 시도해주세요.",
+          variant: "destructive",
+        });
+      }
+    },
+  });
 
   // 식물을 찾지 못한 경우 홈으로 리다이렉트
   useEffect(() => {
@@ -358,46 +396,6 @@ export default function PlantDetail() {
     // 3초 후 버튼 상태 리셋
     setTimeout(() => setAddedToCart(false), 3000);
   };
-
-  const queryClient = useQueryClient();
-
-  const purchaseMutation = useMutation({
-    mutationFn: async (orderData: {
-      plantId: string;
-      plantName: string;
-      size: string;
-      coinsUsed: number;
-      quantity: number;
-    }) => {
-      const response = await apiRequest("POST", "/api/orders", orderData);
-      return response;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
-      toast({
-        title: "구매 완료!",
-        description: "식물이 성공적으로 구매되었습니다.",
-      });
-      setLocation("/mypage?tab=subscription");
-    },
-    onError: (error: any) => {
-      if (error.error === "insufficient_coins") {
-        toast({
-          title: "보유 코인이 부족합니다",
-          description: `현재 코인: ${error.currentCoins}, 필요 코인: ${error.requiredCoins}`,
-          variant: "destructive",
-        });
-        setLocation("/subscription");
-      } else {
-        toast({
-          title: "구매 실패",
-          description: error.message || "다시 시도해주세요.",
-          variant: "destructive",
-        });
-      }
-    },
-  });
 
   const handlePurchase = () => {
     // 로그인 확인

@@ -10,6 +10,7 @@ const MemoryStoreConstructor = MemoryStore(session);
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Session middleware
+  const isProduction = process.env.NODE_ENV === 'production';
   app.use(session({
     secret: process.env.SESSION_SECRET || 'your-secret-key-here',
     resave: false,
@@ -18,10 +19,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       checkPeriod: 86400000 // prune expired entries every 24h
     }),
     cookie: {
-      secure: false, // set to true in production with HTTPS
+      secure: false, // Keep false for localhost development
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: 'lax'
+      sameSite: 'lax' as const // Lax works better without HTTPS in dev
     },
     name: 'sessionId'
   }));
@@ -60,26 +61,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).send("아이디 또는 비밀번호가 올바르지 않습니다.");
       }
 
-      // Set session
-      (req.session as any).userId = user.id;
-      console.log("Setting session for user:", user.id);
-      console.log("Session ID after login:", req.sessionID);
-      
-      // Force session regeneration to ensure new session ID
+      // Regenerate session to prevent session fixation attacks
       req.session.regenerate((err) => {
         if (err) {
           console.error("Session regeneration error:", err);
           return res.status(500).send("세션 생성 중 오류가 발생했습니다.");
         }
         
+        // Set user ID in new session
         (req.session as any).userId = user.id;
+        
+        // Save the session
         req.session.save((saveErr) => {
           if (saveErr) {
             console.error("Session save error:", saveErr);
             return res.status(500).send("세션 저장 중 오류가 발생했습니다.");
           }
-          console.log("Session saved successfully with ID:", req.sessionID);
-          res.json({ id: user.id, username: user.username });
+          
+          // Return user data
+          res.json({ 
+            id: user.id, 
+            username: user.username,
+            coins: user.coins,
+            address: user.address,
+            phone: user.phone
+          });
         });
       });
     } catch (error) {
@@ -93,17 +99,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (err) {
         return res.status(500).send("로그아웃 중 오류가 발생했습니다.");
       }
-      res.clearCookie('sessionId');
+      res.clearCookie('sessionId', {
+        path: '/',
+        httpOnly: true,
+        sameSite: 'lax'
+      });
       res.json({ message: "로그아웃되었습니다." });
     });
   });
 
   app.get("/api/auth/me", async (req, res) => {
     try {
-      console.log("Session ID:", req.sessionID);
-      console.log("Session data:", req.session);
-      console.log("User ID from session:", (req.session as any)?.userId);
-      
       const userId = (req.session as any)?.userId;
       if (!userId) {
         return res.status(401).send("로그인이 필요합니다.");

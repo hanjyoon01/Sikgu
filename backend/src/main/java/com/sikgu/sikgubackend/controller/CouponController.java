@@ -12,7 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/coupons")
-@Tag(name = "쿠폰 및 결제", description = "쿠폰 및 결제 관련 API")
+@Tag(name = "미구현", description = "쿠폰 및 결제 관련 API")
 public class CouponController {
 
     private final CouponService couponService;

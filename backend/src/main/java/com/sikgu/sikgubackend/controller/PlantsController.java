@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/plants")
-@Tag(name = "식물", description = "식물 추천 및 관리 API")
+@Tag(name = "미구현", description = "식물 추천 및 관리 API")
 public class PlantsController {
 
     private final PlantsService plantsService;
