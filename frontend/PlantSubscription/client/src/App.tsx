@@ -16,6 +16,7 @@ import PlantRecommendation from "@/pages/PlantRecommendation";
 import PlantTips from "@/pages/PlantTips";
 import PlantDetail from "@/pages/PlantDetail";
 import Cart from "@/pages/Cart";
+import TestApiCall from './components/TestApiCall';
 
 function Router() {
   return (
@@ -39,6 +40,7 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <TestApiCall />
       <CartProvider>
         <TooltipProvider>
           <Toaster />
