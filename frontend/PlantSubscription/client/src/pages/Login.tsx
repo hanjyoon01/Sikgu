@@ -61,7 +61,7 @@ export default function Login() {
           title: "로그인 성공",
           description: "환영합니다!",
         });
-        setLocation("/home");
+        setLocation("/");
       } else {
         const errorText = await response.text();
         toast({
