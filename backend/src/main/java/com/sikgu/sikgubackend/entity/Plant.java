@@ -62,6 +62,6 @@ public class Plant extends BaseEntity {
 
     public void addCartItem(CartItem cartItem) {
         items.add(cartItem);
-        cartItem.setPlant(this);
+        cartItem.assignPlant(this);
     }
 }

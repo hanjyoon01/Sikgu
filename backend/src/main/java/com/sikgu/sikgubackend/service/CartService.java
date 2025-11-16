@@ -92,9 +92,10 @@ public class CartService {
             cartItem.increaseQuantity();
         } else {
             // 새 항목이면 수량을 1로 설정
-            cartItem = CartItem.builder().build();
-            cartItem.setCart(cart);
-            cartItem.setPlant(plant);
+            cartItem = CartItem.builder()
+                    .cart(cart)
+                    .plant(plant)
+                    .build();
             cart.getItems().add(cartItem);
         }
 
