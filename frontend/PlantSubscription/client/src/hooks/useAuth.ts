@@ -13,14 +13,14 @@ export function useAuth() {
   const queryClient = useQueryClient();
 
   const { data: user, isLoading } = useQuery<User>({
-    queryKey: ["/api/auth/me"],
+    queryKey: ["/auth/me"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
   });
 
   const loginMutation = useMutation({
     mutationFn: async ({ username, password }: { username: string; password: string }) => {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch("/auth/login", {
         method: "POST",
         body: JSON.stringify({ username, password }),
         headers: {
@@ -44,14 +44,14 @@ export function useAuth() {
       return data;
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(["/api/auth/me"], data);
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      queryClient.setQueryData(["/auth/me"], data);
+      queryClient.invalidateQueries({ queryKey: ["/auth/me"] });
     },
   });
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/auth/logout", {
+      const response = await fetch("/auth/logout", {
         method: "POST",
         credentials: "include",
       });
@@ -68,7 +68,7 @@ export function useAuth() {
       sessionStorage.removeItem("bearerToken");
       // Clear all cached data to prevent data leakage between users
       queryClient.clear();
-      queryClient.setQueryData(["/api/auth/me"], null);
+      queryClient.setQueryData(["/auth/me"], null);
     },
   });
 
