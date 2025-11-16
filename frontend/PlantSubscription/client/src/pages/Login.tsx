@@ -38,6 +38,7 @@ export default function Login() {
     }
 
     try {
+      // username을 email로 사용 (백엔드가 email을 요구하는 경우)
       await login({ username, password });
       toast({
         title: "로그인 성공",
@@ -45,9 +46,13 @@ export default function Login() {
       });
       setLocation("/");
     } catch (error: any) {
+      console.error("로그인 에러:", error);
+      const errorMessage = typeof error.message === 'string' 
+        ? error.message 
+        : "아이디 또는 비밀번호를 확인해주세요.";
       toast({
         title: "로그인 실패",
-        description: error.message || "아이디 또는 비밀번호를 확인해주세요.",
+        description: errorMessage,
         variant: "destructive",
       });
     }

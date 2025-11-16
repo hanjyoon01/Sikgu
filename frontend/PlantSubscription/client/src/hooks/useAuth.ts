@@ -24,7 +24,7 @@ export function useAuth() {
     mutationFn: async ({ username, password }: { username: string; password: string }) => {
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email: username, password }), // username을 email로 매핑
         headers: {
           "Content-Type": "application/json",
         },
@@ -32,8 +32,15 @@ export function useAuth() {
       });
 
       if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error);
+        let errorMessage = "로그인에 실패했습니다.";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch {
+          const errorText = await response.text();
+          errorMessage = errorText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       return response.json();
