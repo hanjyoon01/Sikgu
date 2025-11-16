@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, getQueryFn } from "@/lib/queryClient";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 interface User {
   id: string;
   username: string;
@@ -20,7 +22,7 @@ export function useAuth() {
 
   const loginMutation = useMutation({
     mutationFn: async ({ username, password }: { username: string; password: string }) => {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         body: JSON.stringify({ username, password }),
         headers: {
@@ -28,12 +30,12 @@ export function useAuth() {
         },
         credentials: "include",
       });
-      
+
       if (!response.ok) {
         const error = await response.text();
         throw new Error(error);
       }
-      
+
       return response.json();
     },
     onSuccess: (data) => {
@@ -44,16 +46,16 @@ export function useAuth() {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/auth/logout", {
+      const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
       });
-      
+
       if (!response.ok) {
         const error = await response.text();
         throw new Error(error);
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
