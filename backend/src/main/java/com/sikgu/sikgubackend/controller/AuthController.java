@@ -85,6 +85,8 @@ public class AuthController {
         response.put("address", user.getAddress());
         response.put("phone", user.getPhone());
 
+        return ResponseEntity.ok(response);ponse.put("phone", user.getPhone());
+
         return ResponseEntity.ok(response);
     }
 

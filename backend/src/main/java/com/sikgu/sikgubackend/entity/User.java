@@ -60,7 +60,16 @@ public class User extends BaseEntity {
         // 유효성 검사 로직 추가 가능
 
         this.address = newAddress;
-        this.phoneNumber = newPhoneNumber;
+        this.phone = newPhoneNumber;
+    }
+
+    public void updatePhoneNumber(String phoneNumber) {
+        this.phone = phoneNumber;
+    }
+
+    public void updatePassword(String password) {
+        this.password = password;
+    } newPhoneNumber;
     }
 
     public void addReview(Review review) {
