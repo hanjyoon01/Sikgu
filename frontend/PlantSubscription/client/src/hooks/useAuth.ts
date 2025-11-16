@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 
@@ -38,10 +37,10 @@ export function useAuth() {
       }
 
       const token = await response.text();
-      
+
       // 토큰을 localStorage에 저장
       localStorage.setItem('authToken', token);
-      
+
       // 토큰으로 사용자 정보 가져오기
       const userResponse = await fetch(`${API_BASE_URL}/api/auth/me`, {
         method: "GET",
