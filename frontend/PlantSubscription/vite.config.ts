@@ -7,14 +7,6 @@ export default defineConfig({
   plugins: [
     react(),
     runtimeErrorOverlay(),
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
-      ? [
-          await import("@replit/vite-plugin-cartographer").then((m) =>
-            m.cartographer(),
-          ),
-        ]
-      : []),
   ],
   resolve: {
     alias: {
@@ -26,17 +18,5 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
-  },
-  server: {
-    host: "0.0.0.0",
-    port: 5000,
-    strictPort: true,
-    hmr: process.env.REPL_ID !== undefined ? {
-      clientPort: 443,
-    } : true,
-    fs: {
-      strict: true,
-      deny: ["**/.*"],
-    },
   },
 });
