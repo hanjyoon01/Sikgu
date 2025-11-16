@@ -51,7 +51,7 @@ export default function Login() {
     }
 
     try {
-      await login({ email, password });
+      await login({ username: email, password });
       toast({
         title: "로그인 성공",
         description: "환영합니다!",

@@ -1,12 +1,12 @@
-import { QueryClient, QueryFunction, QueryKey } from "@tanstack/react-query";
+import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
-
+    
     try {
       const errorData = JSON.parse(text);
-
+      
       if (errorData.error === "insufficient_coins") {
         throw {
           error: "insufficient_coins",
@@ -15,7 +15,7 @@ async function throwIfResNotOk(res: Response) {
           message: "보유 코인이 부족합니다."
         };
       }
-
+      
       const errorMessage = errorData.error || errorData.message || text;
       throw new Error(errorMessage);
     } catch (e) {
@@ -25,7 +25,7 @@ async function throwIfResNotOk(res: Response) {
       if (typeof e === 'object' && e !== null && 'error' in e) {
         throw e;
       }
-
+      
       if (res.status === 400) {
         throw new Error("요청을 처리할 수 없습니다. 입력 내용을 확인해주세요.");
       } else if (res.status === 401) {
@@ -48,18 +48,9 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const token = sessionStorage.getItem("bearerToken");
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  };
-
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-
   const res = await fetch(url, {
     method,
-    headers,
+    headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
@@ -73,19 +64,9 @@ export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey }: { queryKey: QueryKey }) => {
-    const token = sessionStorage.getItem("bearerToken");
-    const headers: HeadersInit = {
-      "Content-Type": "application/json",
-    };
-
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
+  async ({ queryKey }) => {
     const res = await fetch(queryKey.join("/") as string, {
       credentials: "include",
-      headers,
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
