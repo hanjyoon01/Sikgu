@@ -53,7 +53,7 @@ public class UserService {
                 user.getId(),
                 user.getEmail(),
                 user.getAddress(),
-                user.getPhoneNumber()
+                user.getPhone()
         );
     }
 

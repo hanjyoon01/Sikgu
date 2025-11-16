@@ -1,16 +1,17 @@
+
 package com.sikgu.sikgubackend.entity;
 
-import com.sikgu.sikgubackend.entity.base.BaseEntity;
-import com.sikgu.sikgubackend.entity.enums.Role;
+import com.sikgu.sikgubackend.enums.Role;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+@Getter
+@NoArgsConstructor
 @Table(name = "users")
 public class User extends BaseEntity {
 
@@ -47,18 +48,16 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SupportQnA> supportQnAs = new ArrayList<>();
 
-    public static User createUser(String email, String password) {
+    public static User createUser(String email, String password, Role role) {
         User user = new User();
         user.email = email;
         user.password = password;
-        user.role = Role.USER;
+        user.role = role;
         user.coins = 0;
         return user;
     }
 
     public void updateInfo(String newAddress, String newPhoneNumber) {
-        // 유효성 검사 로직 추가 가능
-
         this.address = newAddress;
         this.phone = newPhoneNumber;
     }
@@ -69,13 +68,13 @@ public class User extends BaseEntity {
 
     public void updatePassword(String password) {
         this.password = password;
-    } newPhoneNumber;
     }
 
     public void addReview(Review review) {
         this.reviews.add(review);
         review.setUser(this);
     }
+
     public void addSupportQnA(SupportQnA supportQnA) {
         this.supportQnAs.add(supportQnA);
         supportQnA.setUser(this);
