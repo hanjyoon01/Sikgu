@@ -21,9 +21,10 @@ public class Planterior3D extends BaseEntity {
 
     private LocalDateTime createdAt;
 
-    @Builder
-    public Planterior3D(String url, LocalDateTime createdAt) {
-        this.plantModelingURL = url;
-        this.createdAt = createdAt;
+    public static Planterior3D createPlanterior3D(String url, LocalDateTime createdAt) {
+        Planterior3D planterior3D = new Planterior3D();
+        planterior3D.plantModelingURL = url;
+        planterior3D.createdAt = createdAt;
+        return planterior3D;
     }
 }

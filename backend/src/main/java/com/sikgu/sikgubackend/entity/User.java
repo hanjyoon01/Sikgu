@@ -40,11 +40,12 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SupportQnA> supportQnAs = new ArrayList<>();
 
-    @Builder
-    public User(String email, String password, Role role) {
-        this.email = email;
-        this.password = password;
-        this.role = role;
+    public static User createUser(String email, String password, Role role) {
+        User user = new User();
+        user.email = email;
+        user.password = password;
+        user.role = role;
+        return user;
     }
 
     public void updateInfo(String newAddress, String newPhoneNumber) {

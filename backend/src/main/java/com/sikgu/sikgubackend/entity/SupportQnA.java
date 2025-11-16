@@ -35,12 +35,13 @@ public class SupportQnA extends BaseEntity {
 
     private LocalDateTime createdAt;
 
-    @Builder
-    public SupportQnA(User user, Category category, String question, String answer) {
-        this.user = user;
-        this.category = category;
-        this.question = question;
-        this.answer = answer;
-        this.createdAt = LocalDateTime.now();
+    public static SupportQnA createSupportQnA(User user, Category category, String question, String answer) {
+        SupportQnA supportQnA = new SupportQnA();
+        supportQnA.user = user;
+        supportQnA.category = category;
+        supportQnA.question = question;
+        supportQnA.answer = answer;
+        supportQnA.createdAt = LocalDateTime.now();
+        return supportQnA;
     }
 }

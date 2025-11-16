@@ -1,7 +1,6 @@
 package com.sikgu.sikgubackend.entity;
 
 import jakarta.persistence.*;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -28,9 +27,10 @@ public class CartItem {
 
     private int quantity;
 
-    @Builder
-    public CartItem() {
-        this.quantity = 1;;
+    public static CartItem createCartItem() {
+        CartItem cartItem = new CartItem();
+        cartItem.quantity = 1;
+        return cartItem;
     }
 
     public void increaseQuantity() {

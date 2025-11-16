@@ -41,7 +41,7 @@ public class CartService {
         } else {
             // 장바구니가 없으면 새로 생성 후 반환 (쓰기 작업은 아니지만 임시 객체 반환)
             cart = userRepository.findByEmail(email)
-                    .map(user -> Cart.builder().user(user).build())
+                    .map(Cart::createCart)
                     .orElseThrow(() -> new UsernameNotFoundException("사용자 정보를 찾을 수 없습니다: " + email));
         }
 
@@ -74,7 +74,7 @@ public class CartService {
         Cart cart = cartRepository.findByUserEmail(email)
                 .orElseGet(() -> {
                     return userRepository.findByEmail(email)
-                            .map(user -> cartRepository.save(Cart.builder().user(user).build()))
+                            .map(user -> cartRepository.save(Cart.createCart(user)))
                             .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
                 });
 
@@ -92,7 +92,7 @@ public class CartService {
             cartItem.increaseQuantity();
         } else {
             // 새 항목이면 수량을 1로 설정
-            cartItem = CartItem.builder().build();
+            cartItem = CartItem.createCartItem();
             cartItem.setCart(cart);
             cartItem.setPlant(plant);
             cart.getItems().add(cartItem);

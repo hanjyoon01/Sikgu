@@ -20,10 +20,11 @@ public class Plan extends BaseEntity {
 
     private Integer coins;
 
-    @Builder
-    public Plan(String name, long price, int coins) {
-        this.name = name;
-        this.price = price;
-        this.coins = coins;
+    public static Plan createPlan(String name, long price, int coins) {
+        Plan plan = new Plan();
+        plan.name = name;
+        plan.price = price;
+        plan.coins = coins;
+        return plan;
     }
 }

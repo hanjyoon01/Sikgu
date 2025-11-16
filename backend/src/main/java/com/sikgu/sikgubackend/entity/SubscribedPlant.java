@@ -29,11 +29,12 @@ public class SubscribedPlant extends BaseEntity {
 
     private Integer quantity;
 
-    @Builder
-    public static SubscribedPlant(Subscription subscription, Plant plant, Pot pot, int quantity) {
-        this.subscription = subscription;
-        this.plant = plant;
-        this.pot = pot;
-        this.quantity = quantity;
+    public static SubscribedPlant createSubscribedPlant(Subscription subscription, Plant plant, Pot pot, int quantity) {
+        SubscribedPlant subscribedPlant = new SubscribedPlant();
+        subscribedPlant.subscription = subscription;
+        subscribedPlant.plant = plant;
+        subscribedPlant.pot = pot;
+        subscribedPlant.quantity = quantity;
+        return subscribedPlant;
     }
 }
