@@ -34,7 +34,14 @@ export function useAuth() {
         throw new Error(error);
       }
       
-      return response.json();
+      const data = await response.json();
+      
+      // Bearer token을 sessionStorage에 저장
+      if (data.token) {
+        sessionStorage.setItem("bearerToken", data.token);
+      }
+      
+      return data;
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["/api/auth/me"], data);
@@ -57,6 +64,8 @@ export function useAuth() {
       return response.json();
     },
     onSuccess: () => {
+      // Bearer token 제거
+      sessionStorage.removeItem("bearerToken");
       // Clear all cached data to prevent data leakage between users
       queryClient.clear();
       queryClient.setQueryData(["/api/auth/me"], null);
