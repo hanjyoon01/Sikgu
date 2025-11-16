@@ -43,9 +43,10 @@ export function useAuth() {
       
       return data;
     },
-    onSuccess: (data) => {
-      queryClient.setQueryData(["/auth/me"], data);
-      queryClient.invalidateQueries({ queryKey: ["/auth/me"] });
+    onSuccess: async () => {
+      // 토큰 저장 후 /auth/me를 호출하여 사용자 정보 가져오기
+      await queryClient.invalidateQueries({ queryKey: ["/auth/me"] });
+      await queryClient.refetchQueries({ queryKey: ["/auth/me"] });
     },
   });
 
