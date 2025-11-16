@@ -24,7 +24,7 @@ export function useAuth() {
     mutationFn: async ({ username, password }: { username: string; password: string }) => {
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
-        body: JSON.stringify({ email: username, password }), // username을 email로 매핑
+        body: JSON.stringify({ email: username, password }),
         headers: {
           "Content-Type": "application/json",
         },
@@ -32,22 +32,29 @@ export function useAuth() {
       });
 
       if (!response.ok) {
-        let errorMessage = "로그인에 실패했습니다.";
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorData.error || errorMessage;
-        } catch {
-          const errorText = await response.text();
-          errorMessage = errorText || errorMessage;
-        }
-        throw new Error(errorMessage);
+        const errorText = await response.text();
+        throw new Error(errorText || "로그인에 실패했습니다.");
       }
 
-      return response.json();
+      const token = await response.text();
+      
+      // 토큰으로 사용자 정보 가져오기
+      const userResponse = await fetch(`${API_BASE_URL}/api/auth/me`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+        credentials: "include",
+      });
+
+      if (!userResponse.ok) {
+        throw new Error("사용자 정보를 가져올 수 없습니다.");
+      }
+
+      return userResponse.json();
     },
-    onSuccess: (data) => {
-      queryClient.setQueryData(["/api/auth/me"], data);
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+    onSuccess: (userData) => {
+      queryClient.setQueryData(["/api/auth/me"], userData);
     },
   });
 
