@@ -13,14 +13,14 @@ export function useAuth() {
   const queryClient = useQueryClient();
 
   const { data: user, isLoading } = useQuery<User>({
-    queryKey: ["/auth/me"],
+    queryKey: ["/api/auth/me"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
   });
 
   const loginMutation = useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      const response = await fetch("/auth/login", {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
         headers: {
@@ -36,23 +36,27 @@ export function useAuth() {
       
       const data = await response.json();
       
+      console.log("로그인 응답:", data);
+      
       // Bearer token을 sessionStorage에 저장
       if (data.token) {
         sessionStorage.setItem("bearerToken", data.token);
+        console.log("Bearer token 저장됨:", data.token);
       }
       
       return data;
     },
     onSuccess: async () => {
+      console.log("로그인 성공, /auth/me 호출 시작");
       // 토큰 저장 후 /auth/me를 호출하여 사용자 정보 가져오기
-      await queryClient.invalidateQueries({ queryKey: ["/auth/me"] });
-      await queryClient.refetchQueries({ queryKey: ["/auth/me"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
     },
   });
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/auth/logout", {
+      const response = await fetch("/api/auth/logout", {
         method: "POST",
         credentials: "include",
       });
@@ -69,7 +73,7 @@ export function useAuth() {
       sessionStorage.removeItem("bearerToken");
       // Clear all cached data to prevent data leakage between users
       queryClient.clear();
-      queryClient.setQueryData(["/auth/me"], null);
+      queryClient.setQueryData(["/api/auth/me"], null);
     },
   });
 
