@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,15 +6,16 @@ import { Label } from "@/components/ui/label";
 import { Link, useLocation } from "wouter";
 import { Eye, EyeOff, Leaf, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function Login() {
   const [, setLocation] = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { login, isLoginLoading } = useAuth();
 
   // Email validation regex
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -23,16 +23,8 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!email) {
-      toast({
-        title: "이메일 오류",
-        description: "이메일을 입력해주세요.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    
+    // Email format validation
     if (!isEmailValid) {
       toast({
         title: "이메일 오류",
@@ -51,23 +43,41 @@ export default function Login() {
       return;
     }
 
+    setIsLoading(true);
+
     try {
-      await login({ email, password });
-      toast({
-        title: "로그인 성공",
-        description: "환영합니다!",
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
       });
-      setLocation("/");
-    } catch (error: any) {
-      console.error("로그인 에러:", error);
-      const errorMessage = typeof error.message === 'string' 
-        ? error.message 
-        : "이메일 또는 비밀번호를 확인해주세요.";
+
+      if (response.ok) {
+        const token = await response.text();
+        sessionStorage.setItem("accessToken", token);
+        toast({
+          title: "로그인 성공",
+          description: "환영합니다!",
+        });
+        setLocation("/");
+      } else {
+        const errorText = await response.text();
+        toast({
+          title: "로그인 실패",
+          description: errorText || "이메일 또는 비밀번호를 확인해주세요.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
       toast({
-        title: "로그인 실패",
-        description: errorMessage,
+        title: "오류 발생",
+        description: "서버와 연결할 수 없습니다. 잠시 후 다시 시도해주세요.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -96,7 +106,7 @@ export default function Login() {
             식구 계정으로 로그인하세요
           </p>
         </CardHeader>
-
+        
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
@@ -126,7 +136,7 @@ export default function Login() {
                 </div>
               )}
             </div>
-
+            
             <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-medium text-gray-700">
                 비밀번호
@@ -156,17 +166,17 @@ export default function Login() {
                 </button>
               </div>
             </div>
-
+            
             <Button
               type="submit"
               className="w-full bg-forest text-white hover:bg-forest/90 py-2"
-              disabled={isLoginLoading || !email || !password || !isEmailValid}
+              disabled={isLoading || !isEmailValid || !password}
               data-testid="button-login"
             >
-              {isLoginLoading ? "로그인 중..." : "로그인"}
+              {isLoading ? "로그인 중..." : "로그인"}
             </Button>
           </form>
-
+          
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600" data-testid="signup-prompt">
               아직 계정이 없으신가요?
@@ -181,7 +191,7 @@ export default function Login() {
               </Button>
             </Link>
           </div>
-
+          
           <div className="mt-4 text-center">
             <Link href="/forgot-password" className="text-sm text-forest hover:text-forest/80" data-testid="link-forgot-password">
               비밀번호를 잊으셨나요?
