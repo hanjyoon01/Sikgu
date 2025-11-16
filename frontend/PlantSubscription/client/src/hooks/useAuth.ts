@@ -34,12 +34,18 @@ export function useAuth() {
       if (!response.ok) {
         let errorMessage = "로그인에 실패했습니다.";
         try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorData.error || errorMessage;
-        } catch {
-          const errorText = await response.text();
-          errorMessage = errorText || errorMessage;
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const errorData = await response.json();
+            errorMessage = errorData.message || errorData.error || JSON.stringify(errorData);
+          } else {
+            const errorText = await response.text();
+            errorMessage = errorText || `HTTP ${response.status}: ${response.statusText}`;
+          }
+        } catch (e) {
+          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
         }
+        console.error("Login error details:", errorMessage);
         throw new Error(errorMessage);
       }
 
