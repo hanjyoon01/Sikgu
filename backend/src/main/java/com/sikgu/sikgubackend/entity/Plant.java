@@ -47,22 +47,21 @@ public class Plant extends BaseEntity {
     @OneToMany(mappedBy = "plant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items = new ArrayList<>();
 
-    public static Plant createPlant(String name, long price, long cycle, PlantCondition light, PlantCondition humidity, PlantCondition temp, String caution, String url, Planterior3D planterior3D) {
-        Plant plant = new Plant();
-        plant.name = name;
-        plant.price = price;
-        plant.cycle = cycle;
-        plant.light = light;
-        plant.humidity = humidity;
-        plant.temp = temp;
-        plant.caution = caution;
-        plant.plantImageURL = url;
-        plant.planterior3D = planterior3D;
-        return plant;
+    @Builder
+    public Plant(String name, long price, long cycle, PlantCondition light, PlantCondition humidity, PlantCondition temp, String caution, String url, Planterior3D planterior3D) {
+        this.name = name;
+        this.price = price;
+        this.cycle = cycle;
+        this.light = light;
+        this.humidity = humidity;
+        this.temp = temp;
+        this.caution = caution;
+        this.plantImageURL = url;
+        this.planterior3D = planterior3D;
     }
 
     public void addCartItem(CartItem cartItem) {
         items.add(cartItem);
-        cartItem.setPlant(this);
+        cartItem.assignPlant(this);
     }
 }
