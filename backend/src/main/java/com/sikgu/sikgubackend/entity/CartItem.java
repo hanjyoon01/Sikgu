@@ -1,13 +1,11 @@
 package com.sikgu.sikgubackend.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "cart_item")
 public class CartItem {
 
@@ -27,10 +25,11 @@ public class CartItem {
 
     private int quantity;
 
-    public static CartItem createCartItem() {
-        CartItem cartItem = new CartItem();
-        cartItem.quantity = 1;
-        return cartItem;
+    @Builder
+    public CartItem(Cart cart, Plant plant, int quantity) {
+        this.cart = cart;
+        this.plant = plant;
+        this.quantity = (quantity <= 0) ? 1 : quantity;
     }
 
     public void increaseQuantity() {
