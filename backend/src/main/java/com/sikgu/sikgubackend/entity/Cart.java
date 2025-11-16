@@ -25,10 +25,9 @@ public class Cart {
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items = new ArrayList<>();
 
-    public static Cart createCart(User user) {
-        Cart cart = new Cart();
-        cart.user = user;
-        return cart;
+    @Builder
+    public Cart(User user) {
+        this.user = user;
     }
 
     public void addCartItem(CartItem cartItem) {
