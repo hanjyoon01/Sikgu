@@ -56,7 +56,8 @@ export default function Login() {
 
       if (response.ok) {
         const token = await response.text();
-        sessionStorage.setItem("accessToken", token);
+        // Bearer token을 sessionStorage에 저장
+        sessionStorage.setItem("bearerToken", token);
         toast({
           title: "로그인 성공",
           description: "환영합니다!",
