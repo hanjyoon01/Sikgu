@@ -6,29 +6,23 @@ import { Label } from "@/components/ui/label";
 import { Link, useLocation } from "wouter";
 import { Eye, EyeOff, Leaf, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Login() {
   const [, setLocation] = useLocation();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-
-  // Email validation regex
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const isEmailValid = emailRegex.test(email);
+  const { login, isLoginLoading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Email format validation
-    if (!isEmailValid) {
+
+    if (!username) {
       toast({
-        title: "이메일 오류",
-        description: "올바른 이메일 형식을 입력해주세요.",
+        title: "아이디 오류",
+        description: "아이디를 입력해주세요.",
         variant: "destructive",
       });
       return;
@@ -43,41 +37,19 @@ export default function Login() {
       return;
     }
 
-    setIsLoading(true);
-
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (response.ok) {
-        const token = await response.text();
-        sessionStorage.setItem("accessToken", token);
-        toast({
-          title: "로그인 성공",
-          description: "환영합니다!",
-        });
-        setLocation("/");
-      } else {
-        const errorText = await response.text();
-        toast({
-          title: "로그인 실패",
-          description: errorText || "이메일 또는 비밀번호를 확인해주세요.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
+      await login({ username, password });
       toast({
-        title: "오류 발생",
-        description: "서버와 연결할 수 없습니다. 잠시 후 다시 시도해주세요.",
+        title: "로그인 성공",
+        description: "환영합니다!",
+      });
+      setLocation("/");
+    } catch (error: any) {
+      toast({
+        title: "로그인 실패",
+        description: error.message || "아이디 또는 비밀번호를 확인해주세요.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -106,37 +78,25 @@ export default function Login() {
             식구 계정으로 로그인하세요
           </p>
         </CardHeader>
-        
+
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                이메일
+              <Label htmlFor="username" className="text-sm font-medium text-gray-700">
+                아이디
               </Label>
               <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="example@email.com"
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="아이디를 입력하세요"
                 required
                 className="w-full"
-                data-testid="input-email"
+                data-testid="input-username"
               />
-              {email && (
-                <div className="flex items-center text-sm mt-1">
-                  {isEmailValid ? (
-                    <Check className="h-4 w-4 text-green-500 mr-1" />
-                  ) : (
-                    <X className="h-4 w-4 text-red-500 mr-1" />
-                  )}
-                  <span className={isEmailValid ? "text-green-500" : "text-red-500"}>
-                    {isEmailValid ? "올바른 이메일 형식" : "이메일 형식이 아닙니다"}
-                  </span>
-                </div>
-              )}
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-medium text-gray-700">
                 비밀번호
@@ -166,17 +126,17 @@ export default function Login() {
                 </button>
               </div>
             </div>
-            
+
             <Button
               type="submit"
               className="w-full bg-forest text-white hover:bg-forest/90 py-2"
-              disabled={isLoading || !isEmailValid || !password}
+              disabled={isLoginLoading || !username || !password}
               data-testid="button-login"
             >
-              {isLoading ? "로그인 중..." : "로그인"}
+              {isLoginLoading ? "로그인 중..." : "로그인"}
             </Button>
           </form>
-          
+
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600" data-testid="signup-prompt">
               아직 계정이 없으신가요?
@@ -191,7 +151,7 @@ export default function Login() {
               </Button>
             </Link>
           </div>
-          
+
           <div className="mt-4 text-center">
             <Link href="/forgot-password" className="text-sm text-forest hover:text-forest/80" data-testid="link-forgot-password">
               비밀번호를 잊으셨나요?
