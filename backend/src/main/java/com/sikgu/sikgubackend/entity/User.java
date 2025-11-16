@@ -21,14 +21,21 @@ public class User extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = false)
     private String password;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role = Role.USER;
+
+    @Column(nullable = false)
+    private Integer coins = 0;
+
+    @Column
     private String address;
 
-    private String phoneNumber;
-
-    @Enumerated(EnumType.STRING)
-    private Role role;
+    @Column
+    private String phone;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subscription_id")
@@ -40,11 +47,12 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SupportQnA> supportQnAs = new ArrayList<>();
 
-    public static User createUser(String email, String password, Role role) {
+    public static User createUser(String email, String password) {
         User user = new User();
         user.email = email;
         user.password = password;
-        user.role = role;
+        user.role = Role.USER;
+        user.coins = 0;
         return user;
     }
 
@@ -62,5 +70,24 @@ public class User extends BaseEntity {
     public void addSupportQnA(SupportQnA supportQnA) {
         this.supportQnAs.add(supportQnA);
         supportQnA.setUser(this);
+    }
+
+    public void addCoins(int amount) {
+        this.coins += amount;
+    }
+
+    public void subtractCoins(int amount) {
+        if (this.coins < amount) {
+            throw new IllegalArgumentException("보유 코인이 부족합니다.");
+        }
+        this.coins -= amount;
+    }
+
+    public void updateAddress(String address) {
+        this.address = address;
+    }
+
+    public void updatePhone(String phone) {
+        this.phone = phone;
     }
 }
