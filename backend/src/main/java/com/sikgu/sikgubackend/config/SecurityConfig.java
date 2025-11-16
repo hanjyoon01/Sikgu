@@ -61,10 +61,8 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("https://d1ktwhlebd1rc2.cloudfront.net");
-        config.addAllowedOrigin("http://127.0.0.1:5000");
-        config.addAllowedOrigin("http://localhost:5173");
-        config.addAllowedOrigin("http://localhost:8080");
+        config.addAllowedOrigin("https://d1ktwhlebd1rc2.cloudfront.net/");
+        config.addAllowedOrigin("http://127.0.0.1:5000/");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);
