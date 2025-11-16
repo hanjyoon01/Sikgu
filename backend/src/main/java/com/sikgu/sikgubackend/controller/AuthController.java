@@ -1,7 +1,9 @@
+
 package com.sikgu.sikgubackend.controller;
 
 import com.sikgu.sikgubackend.dto.LoginRequest;
 import com.sikgu.sikgubackend.dto.SignupRequest;
+import com.sikgu.sikgubackend.dto.UserDto;
 import com.sikgu.sikgubackend.security.jwt.util.JwtTokenUtil;
 import com.sikgu.sikgubackend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,14 +35,36 @@ public class AuthController {
 
     @Operation(summary = "로그인")
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getEmail(),
+                        loginRequest.getPassword()
+                )
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
         String token = jwtTokenUtil.generateToken(authentication.getName());
 
-        return ResponseEntity.ok(token);
+        return ResponseEntity.ok().body(
+                new LoginResponse(token)
+        );
     }
+
+    @Operation(summary = "내 정보 조회 (JWT 기반)")
+    @GetMapping("/me")
+    public ResponseEntity<?> me(Authentication authentication) {
+
+        if (authentication == null) {
+            return ResponseEntity.status(401).body("인증된 사용자가 아닙니다.");
+        }
+
+        String email = authentication.getName();
+        UserDto user = userService.getUserProfile(email);
+
+        return ResponseEntity.ok(user);
+    }
+
+    record LoginResponse(String token) {}
 }
