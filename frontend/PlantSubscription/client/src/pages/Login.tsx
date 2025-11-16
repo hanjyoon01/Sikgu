@@ -7,7 +7,7 @@ import { Link, useLocation } from "wouter";
 import { Eye, EyeOff, Leaf, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://sikgu.duckdns.org";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function Login() {
   const [, setLocation] = useLocation();
