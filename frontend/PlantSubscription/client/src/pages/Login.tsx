@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,19 +11,32 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function Login() {
   const [, setLocation] = useLocation();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const { login, isLoginLoading } = useAuth();
 
+  // Email validation regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isEmailValid = emailRegex.test(email);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!username) {
+    if (!email) {
       toast({
-        title: "아이디 오류",
-        description: "아이디를 입력해주세요.",
+        title: "이메일 오류",
+        description: "이메일을 입력해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!isEmailValid) {
+      toast({
+        title: "이메일 오류",
+        description: "올바른 이메일 형식을 입력해주세요.",
         variant: "destructive",
       });
       return;
@@ -38,8 +52,7 @@ export default function Login() {
     }
 
     try {
-      // username을 email로 사용 (백엔드가 email을 요구하는 경우)
-      await login({ username, password });
+      await login({ email, password });
       toast({
         title: "로그인 성공",
         description: "환영합니다!",
@@ -49,7 +62,7 @@ export default function Login() {
       console.error("로그인 에러:", error);
       const errorMessage = typeof error.message === 'string' 
         ? error.message 
-        : "아이디 또는 비밀번호를 확인해주세요.";
+        : "이메일 또는 비밀번호를 확인해주세요.";
       toast({
         title: "로그인 실패",
         description: errorMessage,
@@ -87,19 +100,31 @@ export default function Login() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-sm font-medium text-gray-700">
-                아이디
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                이메일
               </Label>
               <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="아이디를 입력하세요"
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="example@email.com"
                 required
                 className="w-full"
-                data-testid="input-username"
+                data-testid="input-email"
               />
+              {email && (
+                <div className="flex items-center text-sm mt-1">
+                  {isEmailValid ? (
+                    <Check className="h-4 w-4 text-green-500 mr-1" />
+                  ) : (
+                    <X className="h-4 w-4 text-red-500 mr-1" />
+                  )}
+                  <span className={isEmailValid ? "text-green-500" : "text-red-500"}>
+                    {isEmailValid ? "올바른 이메일 형식" : "이메일 형식이 아닙니다"}
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -135,7 +160,7 @@ export default function Login() {
             <Button
               type="submit"
               className="w-full bg-forest text-white hover:bg-forest/90 py-2"
-              disabled={isLoginLoading || !username || !password}
+              disabled={isLoginLoading || !email || !password || !isEmailValid}
               data-testid="button-login"
             >
               {isLoginLoading ? "로그인 중..." : "로그인"}
