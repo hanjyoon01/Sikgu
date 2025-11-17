@@ -395,7 +395,7 @@ const MODEL_MAP = {
     showInToolbar: true,
   },
 
-  // 가구구
+  // 가구
   sofa: {
     label: '소파',
     url: '/models/static/Sofa.glb',
@@ -431,6 +431,27 @@ const MODEL_MAP = {
     showInToolbar: true,
     canPlaceOn: true, // 위에 물건 올릴 수 있음
   },
+  plant_table_small: {
+    label: '식물 받침대 (소)',
+    url: '/models/static/Plant_Table.glb',
+    targetHeight: 0.45,
+    showInToolbar: true,
+    canPlaceOn: true,
+  },
+  plant_table_medium: {
+    label: '식물 받침대 (중)',
+    url: '/models/static/Plant_Table.glb',
+    targetHeight: 0.6,
+    showInToolbar: true,
+    canPlaceOn: true,
+  },
+  plant_table_large: {
+    label: '식물 받침대 (대)',
+    url: '/models/static/Plant_Table.glb',
+    targetHeight: 0.8,
+    showInToolbar: true,
+    canPlaceOn: true,
+  },
   flower_vase: {
     label: '꽃병',
     url: '/models/static/Flower_Vase.glb',
@@ -438,6 +459,19 @@ const MODEL_MAP = {
     showInToolbar: true,
   },
 }
+
+const PLANT_STAND_KEYS = new Set([
+  'plant_table_small',
+  'plant_table_medium',
+  'plant_table_large',
+])
+const FURNITURE_BLOCK_KEYS = new Set([
+  'sofa',
+  'coffee_table',
+  'sideboard',
+  'console_table',
+  ...PLANT_STAND_KEYS,
+])
 
 function renderModelButtons() {
   const bar = document.querySelector('.toolbar')
@@ -505,6 +539,53 @@ function ensurePrototype(url) {
 
 /** ===== Utilities ===== */
 const draggable = []
+
+function isPlantStandKey(key) {
+  return PLANT_STAND_KEYS.has(key)
+}
+
+function isPlantModelKey(key) {
+  if (!key) return false
+  const cfg = MODEL_MAP[key]
+  return cfg?.url?.includes('/models/dynamic/')
+}
+
+function canPlaceSelectedOnBase(selectedKey, selectedCfg, baseObj, baseCfg) {
+  const baseKey = baseObj.userData?.modelKey
+  if (!baseKey || !baseCfg) return false
+  if (baseKey === 'flower_vase') return false
+
+  if (selectedCfg?.onlyOnSideboard) {
+    return baseKey === 'sideboard'
+  }
+
+  if (isPlantStandKey(selectedKey)) {
+    // 받침대는 다른 가구 위에 올리지 못함
+    return false
+  }
+
+  if (isPlantStandKey(baseKey)) {
+    // 받침대 위에는 식물만 가능
+    return isPlantModelKey(selectedKey)
+  }
+
+  if (isPlantModelKey(selectedKey)) {
+    return baseCfg.canPlaceOn || false
+  }
+
+  return baseCfg.canPlaceOn || false
+}
+
+function getPlaceableBases(selectedKey, selectedCfg, excludeObj = null) {
+  return draggable.filter((obj) => {
+    if (!obj || obj === excludeObj) return false
+    const baseKey = obj.userData?.modelKey
+    if (!baseKey) return false
+    const baseCfg = MODEL_MAP[baseKey]
+    if (!baseCfg) return false
+    return canPlaceSelectedOnBase(selectedKey, selectedCfg, obj, baseCfg)
+  })
+}
 
 /** ===== 방 상태 출력 함수 ===== */
 function logRoomState(action = '') {
@@ -621,32 +702,6 @@ function getWorldSize(obj) {
   return size
 }
 
-// target(소파) 정면 방향으로 gap 만큼 띄워 앞에 배치
-function placeInFrontOf(obj, target, gap = 0.2) {
-  // 테이블 회전을 소파와 맞춤
-  obj.rotation.y = target.rotation.y
-
-  const sofaSize = getWorldSize(target)
-  const tableSize = getWorldSize(obj)
-
-  // 소파의 "정면" 방향 벡터 (y-회전만 고려)
-  const fwd = new THREE.Vector3(0, 0, 1)
-    .applyEuler(new THREE.Euler(0, target.rotation.y, 0))
-    .normalize()
-
-  // 두 물체의 하프-깊이 + 간격만큼 전방으로 이동
-  const offset = sofaSize.z / 2 + tableSize.z / 2 + gap
-
-  const pos = target.position
-    .clone()
-    .add(new THREE.Vector3(fwd.x, 0, fwd.z).multiplyScalar(offset))
-
-  // 방 범위 클램프 + 바닥에 올리기
-  const { x, z } = clampInRoomXZ(pos.x, pos.z)
-  const hh = getHalfHeight(obj)
-  obj.position.set(x, hh, z)
-}
-
 // 지정한 벽에 ‘등’이 닿도록 붙이고, 드래그시 벽 따라만 움직이게 세팅
 function placeAgainstWall(obj, side, gap = 0.03) {
   // 1) 회전: 방 안쪽을 바라보게
@@ -691,51 +746,6 @@ function placeAgainstWall(obj, side, gap = 0.03) {
 
   // 4) 드래그 제약 정보 저장 (벽을 따라만 이동)
   obj.userData.wallSide = side
-}
-
-// base의 "앞을 바라보는 기준"에서 오른쪽(+1) 또는 왼쪽(-1)으로 obj를 같은 벽에 나란히 배치
-function placeBesideOnWall(obj, base, sideSign = +1, gap = 0.12) {
-  // 회전 동일
-  obj.rotation.y = base.rotation.y
-
-  // 오른쪽 방향 벡터 (base의 y-회전 기준)
-  const right = new THREE.Vector3(1, 0, 0)
-    .applyEuler(new THREE.Euler(0, base.rotation.y, 0))
-    .normalize()
-
-  const baseSize = getWorldSize(base)
-  const objSize = getWorldSize(obj)
-  const offset = baseSize.x / 2 + objSize.x / 2 + gap
-
-  // 가로(평행축)로만 이동
-  const target = base.position
-    .clone()
-    .add(right.multiplyScalar(sideSign * offset))
-
-  // 방 범위 보정 후 임시 위치
-  const { x, z } = clampInRoomXZ(target.x, target.z)
-  const hh = getHalfHeight(obj)
-  obj.position.set(x, hh, z)
-
-  // base와 같은 벽에 밀착
-  const wall = base.userData?.wallSide || 'front'
-  placeAgainstWall(obj, wall, 0.02)
-}
-
-// 소파가 붙은 벽의 반대편 벽을 구함
-function oppositeSide(side) {
-  switch (side) {
-    case 'back':
-      return 'front'
-    case 'front':
-      return 'back'
-    case 'left':
-      return 'right'
-    case 'right':
-      return 'left'
-    default:
-      return 'front'
-  }
 }
 
 // base(거실장) 위 가운데에 obj(TV)를 올림
@@ -940,14 +950,8 @@ function updatePreview() {
   // 선택된 객체가 가구인지 확인 (가구는 가구 위에 올릴 수 없음, 단 꽃병과 텔레비전은 예외)
   const isFurniture =
     selectedKey &&
-    [
-      'sofa',
-      'coffee_table',
-      'sideboard',
-      // 'television', // 텔레비전은 사이드보드 위에 올릴 수 있음
-      'console_table',
-      // 'flower_vase', // 꽃병은 가구 위에 올릴 수 있음
-    ].includes(selectedKey)
+    FURNITURE_BLOCK_KEYS.has(selectedKey) &&
+    !isPlantModelKey(selectedKey)
 
   // 가구는 가구 위에 올릴 수 없음 (꽃병과 텔레비전 제외)
   if (isFurniture) {
@@ -957,27 +961,11 @@ function updatePreview() {
 
   // canPlaceOn이 true인 가구들만 체크 (꽃병 제외)
   // 텔레비전의 경우 사이드보드만 허용
-  const placeableFurniture = draggable.filter((obj) => {
-    if (obj === selected) return false // 자기 자신은 제외
-    const modelKey = obj.userData?.modelKey
-    if (modelKey && MODEL_MAP[modelKey]) {
-      const objCfg = MODEL_MAP[modelKey]
-
-      // 꽃병 위에는 아무것도 올릴 수 없음
-      if (modelKey === 'flower_vase') {
-        return false
-      }
-
-      // 텔레비전인 경우 사이드보드만 허용
-      if (selectedCfg?.onlyOnSideboard) {
-        return modelKey === 'sideboard'
-      }
-
-      // 일반적으로 canPlaceOn이 true인 가구
-      return objCfg.canPlaceOn || false
-    }
-    return false
-  })
+  const placeableFurniture = getPlaceableBases(
+    selectedKey,
+    selectedCfg,
+    selected
+  )
 
   // 레이캐스팅으로 가구 감지
   const hits = downRay.intersectObjects(placeableFurniture, true)
@@ -1094,14 +1082,8 @@ function drop(skipLog = false) {
     // 선택된 객체가 가구인지 확인 (가구는 가구 위에 올릴 수 없음, 단 꽃병과 텔레비전은 예외)
     const isFurniture =
       selectedKey &&
-      [
-        'sofa',
-        'coffee_table',
-        'sideboard',
-        // 'television', // 텔레비전은 사이드보드 위에 올릴 수 있음
-        'console_table',
-        // 'flower_vase', // 꽃병은 가구 위에 올릴 수 있음
-      ].includes(selectedKey)
+      FURNITURE_BLOCK_KEYS.has(selectedKey) &&
+      !isPlantModelKey(selectedKey)
 
     // 가구는 가구 위에 올릴 수 없음 (꽃병과 텔레비전 제외) - 바닥에 배치
     if (isFurniture) {
@@ -1122,27 +1104,11 @@ function drop(skipLog = false) {
 
     // canPlaceOn이 true인 가구들만 체크 (꽃병 제외)
     // 텔레비전의 경우 사이드보드만 허용
-    const placeableFurniture = draggable.filter((obj) => {
-      if (obj === selected) return false // 자기 자신은 제외
-      const modelKey = obj.userData?.modelKey
-      if (modelKey && MODEL_MAP[modelKey]) {
-        const objCfg = MODEL_MAP[modelKey]
-
-        // 꽃병 위에는 아무것도 올릴 수 없음
-        if (modelKey === 'flower_vase') {
-          return false
-        }
-
-        // 텔레비전인 경우 사이드보드만 허용
-        if (selectedCfg?.onlyOnSideboard) {
-          return modelKey === 'sideboard'
-        }
-
-        // 일반적으로 canPlaceOn이 true인 가구
-        return objCfg.canPlaceOn || false
-      }
-      return false
-    })
+    const placeableFurniture = getPlaceableBases(
+      selectedKey,
+      selectedCfg,
+      selected
+    )
 
     // 레이캐스팅으로 가구 감지
     const hits = downRay.intersectObjects(placeableFurniture, true)
