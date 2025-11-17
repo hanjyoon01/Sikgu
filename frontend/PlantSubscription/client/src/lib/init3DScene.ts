@@ -364,9 +364,9 @@ export function init3DScene(appElement: HTMLElement, toolbarElement: HTMLElement
       targetHeight: 5,
       showInToolbar: true,
     },
-    stuckyi: {
-      label: '스투키',
-      url: '/planterior-assets/models/dynamic/big/Stuckyi.glb',
+    philodendron_congo: {
+      label: '필로덴드론 콩고',
+      url: '/planterior-assets/models/dynamic/big/Philodendron_Congo.glb',
       targetHeight: 4.3,
       showInToolbar: true,
     },

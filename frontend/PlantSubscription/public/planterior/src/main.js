@@ -324,9 +324,9 @@ const MODEL_MAP = {
     targetHeight: 5,
     showInToolbar: true,
   },
-  stuckyi: {
-    label: '스투키',
-    url: '/models/dynamic/big/Stuckyi.glb',
+  philodendron_congo: {
+    label: '필로덴드론 콩고',
+    url: '/models/dynamic/big/Philodendron_Congo.glb',
     targetHeight: 4.3,
     showInToolbar: true,
   },
