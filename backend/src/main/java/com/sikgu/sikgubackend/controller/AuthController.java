@@ -1,4 +1,3 @@
-
 package com.sikgu.sikgubackend.controller;
 
 import com.sikgu.sikgubackend.dto.LoginRequest;
@@ -14,6 +13,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -64,6 +65,14 @@ public class AuthController {
         UserDto user = userService.getUserProfile(email);
 
         return ResponseEntity.ok(user);
+    }
+
+    @Operation(summary = "로그아웃")
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        // JWT 방식이므로 서버에서 세션을 관리하지 않음
+        // 클라이언트에서 토큰을 삭제하는 것으로 충분
+        return ResponseEntity.ok().body(Map.of("message", "로그아웃 성공"));
     }
 
     record LoginResponse(String token) {}
