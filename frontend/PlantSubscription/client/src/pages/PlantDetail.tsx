@@ -366,7 +366,7 @@ export default function PlantDetail() {
     return null;
   }
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     // 로그인 확인
     if (!isAuthenticated) {
       toast({
@@ -378,23 +378,25 @@ export default function PlantDetail() {
       return;
     }
 
-    // 장바구니에 추가
-    addItem({
-      id: plant.id,
-      name: plant.name,
-      size: plant.size,
-      coins: plant.coins,
-      image: plant.images[0],
-    });
+    try {
+      // 장바구니에 추가 (plantId만 전달)
+      await addItem(plant.id);
 
-    setAddedToCart(true);
-    toast({
-      title: "장바구니에 추가되었습니다",
-      description: `${plant.name}이(가) 장바구니에 담겼습니다.`,
-    });
-    
-    // 3초 후 버튼 상태 리셋
-    setTimeout(() => setAddedToCart(false), 3000);
+      setAddedToCart(true);
+      toast({
+        title: "장바구니에 추가되었습니다",
+        description: `${plant.name}이(가) 장바구니에 담겼습니다.`,
+      });
+      
+      // 3초 후 버튼 상태 리셋
+      setTimeout(() => setAddedToCart(false), 3000);
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "장바구니 추가에 실패했습니다.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handlePurchase = () => {
