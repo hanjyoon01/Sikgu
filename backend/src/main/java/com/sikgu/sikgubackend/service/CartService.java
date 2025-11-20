@@ -48,12 +48,12 @@ public class CartService {
         // Cart 엔티티를 CartDto로 변환 및 총 가격 계산
         List<CartItemDto> itemDtos = cart.getItems().stream()
                 .map(item -> {
-                    long itemTotal = item.getPlant().getPrice() * item.getQuantity();
+                    long itemTotal = item.getPlant().getCoins() * item.getQuantity();
 
                     return new CartItemDto(
                             item.getPlant().getId(),
                             item.getPlant().getName(),
-                            item.getPlant().getPrice(),
+                            item.getPlant().getCoins(),
                             item.getQuantity(),
                             itemTotal
                     );
