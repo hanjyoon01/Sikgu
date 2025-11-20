@@ -175,7 +175,7 @@ export function useAuth() {
     queryFn: async () => {
       const token = sessionStorage.getItem("bearerToken");
 
-      const res = await fetch("/me", {
+      const res = await fetch("/auth/me", {
         credentials: "include",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
@@ -218,9 +218,9 @@ export function useAuth() {
       return data;
     },
 
-    onSuccess: async () => {
+    onSuccess: () => {
       // 로그인 직후 강제 재조회 → 여기서 401 나오면 절대 안 됨 (토큰 저장했으니 성공)
-      await queryClient.refetchQueries({ queryKey: ["me"] });
+      queryClient.invalidateQueries({ queryKey: ["me"] });
     },
   });
 
