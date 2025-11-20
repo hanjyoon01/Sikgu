@@ -77,6 +77,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/carts"] });
     },
+    onError: (error: any) => {
+      console.error("Failed to remove item:", error);
+      throw error;
+    },
   });
 
   // 장바구니 비우기
