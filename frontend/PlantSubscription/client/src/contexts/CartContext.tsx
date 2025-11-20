@@ -64,6 +64,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/carts"] });
     },
+    onError: (error: any) => {
+      console.error("Failed to decrease quantity:", error);
+      throw error;
+    },
   });
 
   // 항목 제거
