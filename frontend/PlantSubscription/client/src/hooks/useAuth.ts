@@ -252,6 +252,12 @@ export function useAuth() {
       queryClient.clear();
       queryClient.setQueryData(["me"], null);
     },
+    onError: () => {
+      // 백엔드 요청 실패해도 클라이언트 측 로그아웃 처리
+      sessionStorage.removeItem("bearerToken");
+      queryClient.clear();
+      queryClient.setQueryData(["me"], null);
+    },
   });
 
   return {
