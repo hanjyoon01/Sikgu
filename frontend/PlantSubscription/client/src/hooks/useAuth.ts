@@ -227,9 +227,18 @@ export function useAuth() {
   // 로그아웃 요청
   const logoutMutation = useMutation({
     mutationFn: async () => {
+      const token = sessionStorage.getItem("bearerToken");
+      
+      if (!token) {
+        throw new Error("로그인 상태가 아닙니다.");
+      }
+
       const res = await fetch("/auth/logout", {
         method: "POST",
         credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!res.ok) {
