@@ -249,8 +249,10 @@ export async function apiRequest(
     data?: unknown,
 ): Promise<Response> {
   const token = sessionStorage.getItem("bearerToken");
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+  const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
 
-  const res = await fetch(url, {
+  const res = await fetch(fullUrl, {
     method,
     headers: {
       ...(data ? { "Content-Type": "application/json" } : {}),
@@ -272,8 +274,11 @@ export const getQueryFn: <T>(options: {
     ({ on401: unauthorizedBehavior }) =>
         async ({ queryKey }) => {
           const token = sessionStorage.getItem("bearerToken");
+          const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+          const url = queryKey.join("/") as string;
+          const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
 
-          const res = await fetch(queryKey.join("/") as string, {
+          const res = await fetch(fullUrl, {
             headers: {
               ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },

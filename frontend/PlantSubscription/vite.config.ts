@@ -28,6 +28,10 @@ export default defineConfig({
         target: 'http://localhost:8080',
         changeOrigin: true,
       },
+      '/carts': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
     },
   },
   root: path.resolve(import.meta.dirname, "client"),
