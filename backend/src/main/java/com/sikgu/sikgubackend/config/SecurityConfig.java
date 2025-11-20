@@ -62,7 +62,10 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.addAllowedOrigin("https://d1ktwhlebd1rc2.cloudfront.net/");
-        config.addAllowedOrigin("http://127.0.0.1:5000/");
+        //config.addAllowedOrigin("http://127.0.0.1:5000/");
+        // 프론트 개발용
+        config.addAllowedOrigin("http://localhost:5173");
+        config.addAllowedOrigin("http://127.0.0.1:5173");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         source.registerCorsConfiguration("/**", config);
