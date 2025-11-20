@@ -30,7 +30,20 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/h2-console/**", "/auth/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/image/**", "/subscriptions", "/subscriptions/**").permitAll()
+                        .requestMatchers(
+                                "/auth/login",
+                                "/auth/signup",
+                                "/auth/reset-password-request",
+                                "/auth/reset-password"
+                        ).permitAll()
+                        .requestMatchers(
+                                "/h2-console/**",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/image/**",
+                                "/subscriptions", "/subscriptions/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf.disable())
