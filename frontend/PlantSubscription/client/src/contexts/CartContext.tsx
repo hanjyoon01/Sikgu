@@ -89,6 +89,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/carts"] });
     },
+    onError: (error: any) => {
+      console.error("Failed to clear cart:", error);
+      throw error;
+    },
   });
 
   const items = cartData?.items || [];
