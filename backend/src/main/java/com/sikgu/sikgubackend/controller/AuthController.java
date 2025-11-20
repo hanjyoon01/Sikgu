@@ -1,6 +1,7 @@
 package com.sikgu.sikgubackend.controller;
 
 import com.sikgu.sikgubackend.dto.LoginRequest;
+import com.sikgu.sikgubackend.dto.LoginResponse;
 import com.sikgu.sikgubackend.dto.SignupRequest;
 import com.sikgu.sikgubackend.dto.UserDto;
 import com.sikgu.sikgubackend.security.jwt.util.JwtTokenUtil;
@@ -74,6 +75,4 @@ public class AuthController {
         // 클라이언트에서 토큰을 삭제하는 것으로 충분
         return ResponseEntity.ok().body(Map.of("message", "로그아웃 성공"));
     }
-
-    record LoginResponse(String token) {}
 }
