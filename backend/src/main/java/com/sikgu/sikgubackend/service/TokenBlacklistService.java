@@ -12,45 +12,62 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class TokenBlacklistService {
 
-    // JWT 블랙리스트 (Set을 사용하고 동기화 처리)
     private final Set<String> blacklist = Collections.synchronizedSet(new HashSet<>());
     private final JwtTokenUtil jwtTokenUtil;
+    // 토큰 만료 후 블랙리스트에서 제거하는 작업을 위한 스케줄러
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
-    // 토큰을 블랙리스트에 등록 (JWT의 남은 유효기간 동안만 저장)
     public void blacklistToken(String token) {
-        if (token == null || isBlacklisted(token)) {
+        if (token == null) {
+            log.warn("BLACKLIST WARNING: Attempted to blacklist a null token.");
             return;
         }
 
-        // 토큰의 남은 유효 시간 계산 (초 단위)
-        long remainingTimeSeconds = jwtTokenUtil.getRemainingTimeSeconds(token);
+        if (isBlacklisted(token)) {
+            log.warn("BLACKLIST WARNING: Token is already blacklisted (Starts with: {}).", token.substring(0, 10));
+            return;
+        }
+
+        long remainingTimeSeconds = 0;
+        try {
+            remainingTimeSeconds = jwtTokenUtil.getRemainingTimeSeconds(token);
+        } catch (Exception e) {
+            log.error("BLACKLIST ERROR: Could not get remaining time for token (Starts with: {}). It might be malformed. Blacklisting for default 5 minutes.", token.substring(0, 10), e);
+            // 만료 시간 계산 실패 시 임시로 5분(300초) 블랙리스트에 추가
+            remainingTimeSeconds = 300;
+        }
 
         if (remainingTimeSeconds > 0) {
             blacklist.add(token);
-            // 유효기간이 지나면 자동으로 블랙리스트에서 제거되도록 스케줄링
+            log.info("LOGOUT BLACKLIST SUCCESS: Token added to blacklist (Starts with: {}). Expires in {} seconds.", token.substring(0, 10), remainingTimeSeconds);
+            log.debug("Current blacklist size: {}", blacklist.size());
             scheduleRemoval(token, remainingTimeSeconds);
+        } else {
+            log.warn("LOGOUT BLACKLIST WARNING: Token already expired. No need to blacklist (Starts with: {}).", token.substring(0, 10));
         }
     }
 
-    // 토큰이 블랙리스트에 있는지 확인
     public boolean isBlacklisted(String token) {
-        boolean isBlacklisted = blacklist.contains(token);
-        if (isBlacklisted) {
-            log.warn("BLOCKED ACCESS: Token found in blacklist.");
+        if (token == null) {
+            return false;
         }
-        return isBlacklisted;}
+        log.debug("BLACKLIST CHECK: Checking if token (Starts with: {}) is blacklisted.", token.substring(0, 10));
+        return blacklist.contains(token);
+    }
 
-    // 유효기간이 지나면 블랙리스트에서 토큰을 제거하는 로직
     private void scheduleRemoval(String token, long delaySeconds) {
-        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.schedule(() -> {
-            blacklist.remove(token);
-            scheduler.shutdown();
+            if (blacklist.remove(token)) {
+                log.debug("BLACKLIST MAINTENANCE: Token successfully removed from blacklist after expiry (Starts with: {}).", token.substring(0, 10));
+            } else {
+                log.debug("BLACKLIST MAINTENANCE: Failed to remove token (Starts with: {}), possibly already removed.", token.substring(0, 10));
+            }
         }, delaySeconds, TimeUnit.SECONDS);
+        log.debug("BLACKLIST SCHEDULER: Removal scheduled for token (Starts with: {}) in {} seconds.", token.substring(0, 10), delaySeconds);
     }
 }
