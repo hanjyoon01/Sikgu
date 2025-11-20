@@ -38,8 +38,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // 장바구니 조회
   const { data: cartData, isLoading, refetch } = useQuery<CartData>({
-    queryKey: ["/api/carts"],
-    queryFn: () => apiRequest("GET", "/api/carts"),
+    queryKey: ["/carts"],
+    queryFn: () => apiRequest("GET", "/carts"),
     enabled: isAuthenticated,
     staleTime: 1000 * 60, // 1분
   });
@@ -47,35 +47,35 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // 장바구니 항목 추가
   const addItemMutation = useMutation({
     mutationFn: (plantId: number) =>
-      apiRequest("POST", "/api/carts", { plantId }),
+      apiRequest("POST", "/carts", { plantId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/carts"] });
+      queryClient.invalidateQueries({ queryKey: ["/carts"] });
     },
   });
 
   // 수량 감소
   const decreaseQuantityMutation = useMutation({
     mutationFn: (plantId: number) =>
-      apiRequest("PATCH", `/api/carts/${plantId}/quantity`),
+      apiRequest("PATCH", `/carts/${plantId}/quantity`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/carts"] });
+      queryClient.invalidateQueries({ queryKey: ["/carts"] });
     },
   });
 
   // 항목 제거
   const removeItemMutation = useMutation({
     mutationFn: (plantId: number) =>
-      apiRequest("DELETE", `/api/carts/${plantId}`),
+      apiRequest("DELETE", `/carts/${plantId}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/carts"] });
+      queryClient.invalidateQueries({ queryKey: ["/carts"] });
     },
   });
 
   // 장바구니 비우기
   const clearCartMutation = useMutation({
-    mutationFn: () => apiRequest("DELETE", "/api/carts"),
+    mutationFn: () => apiRequest("DELETE", "/carts"),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/carts"] });
+      queryClient.invalidateQueries({ queryKey: ["/carts"] });
     },
   });
 

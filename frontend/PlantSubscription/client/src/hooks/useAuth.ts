@@ -175,7 +175,7 @@ export function useAuth() {
     queryFn: async () => {
       const token = sessionStorage.getItem("bearerToken");
 
-      const res = await fetch("/auth/me", {
+      const res = await fetch("/me", {
         credentials: "include",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
