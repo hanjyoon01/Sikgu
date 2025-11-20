@@ -218,9 +218,9 @@ export function useAuth() {
       return data;
     },
 
-    onSuccess: () => {
+    onSuccess: async () => {
       // 로그인 직후 강제 재조회 → 여기서 401 나오면 절대 안 됨 (토큰 저장했으니 성공)
-      queryClient.invalidateQueries({ queryKey: ["me"] });
+      await queryClient.refetchQueries({ queryKey: ["me"] });
     },
   });
 
