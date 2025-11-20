@@ -51,6 +51,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/carts"] });
     },
+    onError: (error: any) => {
+      console.error("Failed to add item to cart:", error);
+      throw error;
+    },
   });
 
   // 수량 감소
