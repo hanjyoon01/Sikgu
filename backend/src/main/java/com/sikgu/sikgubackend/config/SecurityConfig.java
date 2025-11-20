@@ -43,7 +43,7 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/image/**",
                                 "/subscriptions", "/subscriptions/**",
-                                "/carts"
+                                "/carts", "/carts/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
