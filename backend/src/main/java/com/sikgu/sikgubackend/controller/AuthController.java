@@ -2,6 +2,7 @@
 package com.sikgu.sikgubackend.controller;
 
 import com.sikgu.sikgubackend.dto.LoginRequest;
+import com.sikgu.sikgubackend.dto.LoginResponse;
 import com.sikgu.sikgubackend.dto.SignupRequest;
 import com.sikgu.sikgubackend.dto.UserDto;
 import com.sikgu.sikgubackend.security.jwt.util.JwtTokenUtil;
@@ -12,7 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -35,7 +38,7 @@ public class AuthController {
 
     @Operation(summary = "로그인")
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getEmail(),
@@ -54,17 +57,10 @@ public class AuthController {
 
     @Operation(summary = "내 정보 조회 (JWT 기반)")
     @GetMapping("/me")
-    public ResponseEntity<?> me(Authentication authentication) {
-
-        if (authentication == null) {
-            return ResponseEntity.status(401).body("인증된 사용자가 아닙니다.");
-        }
-
-        String email = authentication.getName();
+    public ResponseEntity<UserDto> me(@AuthenticationPrincipal UserDetails userDetails) {
+        String email = userDetails.getUsername();
         UserDto user = userService.getUserProfile(email);
 
         return ResponseEntity.ok(user);
     }
-
-    record LoginResponse(String token) {}
 }
